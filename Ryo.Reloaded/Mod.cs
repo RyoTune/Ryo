@@ -65,7 +65,7 @@ public class Mod : ModBase, IExports
         this.modLoader.GetController<IStartupScanner>().TryGetTarget(out var scanner);
         this.modLoader.GetController<ISharedScans>().TryGetTarget(out var scans);
 
-        this.criAtomEx = new(this.game, scans!);
+        this.criAtomEx = new(this.game, scans!, this.hooks);
         this.modLoader.AddOrReplaceController<ICriAtomEx>(this.owner, this.criAtomEx);
 
         this.criAtomRegistry = new();

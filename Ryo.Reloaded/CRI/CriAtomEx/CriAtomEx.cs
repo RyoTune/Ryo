@@ -61,7 +61,7 @@ internal unsafe class CriAtomEx : ICriAtomEx
     private readonly WrapperContainer<criAtomExPlayer_GetStatus> getStatus;
     private readonly WrapperContainer<criAtomExPlayer_ResetParameters> resetParameters;
 
-    public CriAtomEx(string game, ISharedScans scans)
+    public CriAtomEx(string game, ISharedScans scans, IReloadedHooks hooks)
     {
         this.game = game;
         this.patterns = CriAtomExGames.GetGamePatterns(game);
@@ -128,36 +128,31 @@ internal unsafe class CriAtomEx : ICriAtomEx
             this.patterns.criAtomExCategory_SetVolume,
             (hooks, result) => this.setVolumeByIndex = hooks.CreateWrapper<criAtomExCategory_SetVolume>(result, out _));
 
-        ScanHooks.Add(
-            nameof(criAtomExPlayer_Create),
-            this.patterns.criAtomExPlayer_Create,
-            (hooks, result) =>
-            {
-                this.create = hooks.CreateFunction<criAtomExPlayer_Create>(result);
-                this.createHook = this.create.Hook(this.Player_Create).Activate();
-            });
+        scans.AddScan<criAtomExPlayer_Create>(this.patterns.criAtomExPlayer_Create);
+        scans.CreateListener<criAtomExPlayer_Create>(result =>
+        {
+            this.create = hooks.CreateFunction<criAtomExPlayer_Create>(result);
+            this.createHook = this.create.Hook(this.Player_Create).Activate();
+        });
 
-        ScanHooks.Add(
-            nameof(criAtomExAcb_LoadAcbFile),
-            this.patterns.criAtomExAcb_LoadAcbFile,
-            (hooks, result) =>
-            {
-                this.loadAcbFile = hooks.CreateFunction<criAtomExAcb_LoadAcbFile>(result);
-                this.loadAcbFileHook = this.loadAcbFile.Hook(this.Acb_LoadAcbFile).Activate();
-            });
+        scans.AddScan<criAtomExAcb_LoadAcbFile>(this.patterns.criAtomExAcb_LoadAcbFile);
+        scans.CreateListener<criAtomExAcb_LoadAcbFile>(result =>
+        {
+            this.loadAcbFile = hooks.CreateFunction<criAtomExAcb_LoadAcbFile>(result);
+            this.loadAcbFileHook = this.loadAcbFile.Hook(this.Acb_LoadAcbFile).Activate();
+        });
 
-        ScanHooks.Add(
-            nameof(criAtomAwb_LoadToc),
-            this.patterns.criAtomAwb_LoadToc,
-            (hooks, result) =>
-            {
-                this.loadToc = hooks.CreateHook<criAtomAwb_LoadToc>(this.Awb_LoadToc, result).Activate();
-            });
+        scans.AddScan<criAtomAwb_LoadToc>(this.patterns.criAtomAwb_LoadToc);
+        scans.CreateListener<criAtomAwb_LoadToc>(result =>
+        {
+            this.loadToc = hooks.CreateHook<criAtomAwb_LoadToc>(this.Awb_LoadToc, result).Activate();
+        });
 
-        ScanHooks.Add(
-            nameof(criAtomExAcb_LoadAcbData),
-            this.patterns.criAtomExAcb_LoadAcbData,
-            (hooks, result) => this.loadAcbDataHook = hooks.CreateHook<criAtomExAcb_LoadAcbData>(this.Acb_LoadAcbData, result).Activate());
+        scans.AddScan<criAtomExAcb_LoadAcbData>(this.patterns.criAtomExAcb_LoadAcbData);
+        scans.CreateListener<criAtomExAcb_LoadAcbData>(result =>
+        {
+            this.loadAcbDataHook = hooks.CreateHook<criAtomExAcb_LoadAcbData>(this.Acb_LoadAcbData, result).Activate();
+        });
 
         ScanHooks.Add(
             nameof(criAtomExPlayer_GetNumPlayedSamples),
