@@ -59,7 +59,7 @@ public class Mod : ModBase, IExports
 
         this.game = Path.GetFileNameWithoutExtension(this.modLoader.GetAppConfig().AppId);
 
-        Log.Init($"Ryo ({this.game.ToUpper()})", this.log, Color.FromArgb(110, 209, 248), true);
+        Project.Initialize(this.modConfig, this.modLoader, this.log, Color.FromArgb(110, 209, 248), true);
         Log.LogLevel = this.config.LogLevel;
 
         this.modLoader.GetController<IStartupScanner>().TryGetTarget(out var scanner);
@@ -82,8 +82,6 @@ public class Mod : ModBase, IExports
 
         this.ryoApi = new(this.criAtomRegistry, this.audioRegistry, this.preprocessor, this.movieRegistry);
         this.modLoader.AddOrReplaceController<IRyoApi>(this.owner, this.ryoApi);
-
-        ScanHooks.Init(scanner!, this.hooks);
 
         this.modLoader.ModLoading += this.OnModLoading;
         this.modLoader.OnModLoaderInitialized += this.OnModLoaderInitialized;

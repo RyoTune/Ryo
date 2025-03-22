@@ -19,15 +19,15 @@ internal unsafe class CriUnreal
         this.game = game;
         this.patterns = CriUnrealGames.GetGamePatterns(game);
 
-        ScanHooks.Add(
-            nameof(USoundAtomCueSheet_AsyncLoadCueSheetTask),
-            this.patterns.USoundAtomCueSheet_AsyncLoadCueSheetTask,
-            (hooks, result) => this.asyncLoadCueSheetTaskHook = hooks.CreateHook<USoundAtomCueSheet_AsyncLoadCueSheetTask>(this.USoundAtomCueSheet_AsyncLoadCueSheetTask, result).Activate());
+        //ScanHooks.Add(
+        //    nameof(USoundAtomCueSheet_AsyncLoadCueSheetTask),
+        //    this.patterns.USoundAtomCueSheet_AsyncLoadCueSheetTask,
+        //    (hooks, result) => this.asyncLoadCueSheetTaskHook = hooks.CreateHook<USoundAtomCueSheet_AsyncLoadCueSheetTask>(this.USoundAtomCueSheet_AsyncLoadCueSheetTask, result).Activate());
 
-        ScanHooks.Add(
-            nameof(USoundAtomCueSheet_AsyncLoadCueSheetTask_SMTV),
-            this.patterns.USoundAtomCueSheet_AsyncLoadCueSheetTask_SMTV,
-            (hooks, result) => this.asyncLoadCueSheetTaskHook_SMTV = hooks.CreateHook<USoundAtomCueSheet_AsyncLoadCueSheetTask_SMTV>(this.AsyncLoadCueSheetTask_SMTV, result).Activate());
+        //ScanHooks.Add(
+        //    nameof(USoundAtomCueSheet_AsyncLoadCueSheetTask_SMTV),
+        //    this.patterns.USoundAtomCueSheet_AsyncLoadCueSheetTask_SMTV,
+        //    (hooks, result) => this.asyncLoadCueSheetTaskHook_SMTV = hooks.CreateHook<USoundAtomCueSheet_AsyncLoadCueSheetTask_SMTV>(this.AsyncLoadCueSheetTask_SMTV, result).Activate());
     }
 
     public void SetDevMode(bool devMode)

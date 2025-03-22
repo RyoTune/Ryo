@@ -1,5 +1,4 @@
 ﻿using System.Runtime.InteropServices;
-using Reloaded.Hooks.Definitions;
 using Ryo.Interfaces;
 using Ryo.Definitions.Structs;
 using Ryo.Definitions.Classes;
@@ -17,36 +16,15 @@ internal unsafe class CriAtomEx : ICriAtomEx
     private readonly Dictionary<int, CriAtomExPlayerConfigTag> playerConfigs = new();
     private readonly List<PlayerConfig> players = new();
 
-    private IFunction<criAtomExPlayer_Create>? create;
-    private IFunction<criAtomExPlayer_GetNumPlayedSamples>? getNumPlayedSamples;
-    private IFunction<criAtomExAcb_LoadAcbFile>? loadAcbFile;
-    private IFunction<criAtomExPlayer_SetFormat>? setFormat;
-    private IFunction<criAtomExPlayer_SetSamplingRate>? setSamplingRate;
-    private IFunction<criAtomExPlayer_SetNumChannels>? setNumChannels;
-    private IFunction<criAtomExPlayer_SetVolume>? setVolume;
-    private IFunction<criAtomExPlayer_SetCategoryById>? setCategoryById;
-    private IFunction<criAtomExPlayer_GetLastPlaybackId>? getLastPlaybackId;
-    private IFunction<criAtomExPlayer_SetCategoryByName>? setCategoryByName;
-    private IFunction<criAtomExPlayer_GetCategoryInfo>? getCategoryInfo;
-    private IFunction<criAtomExPlayer_UpdateAll>? updateAll;
-    private IFunction<criAtomExPlayer_LimitLoopCount>? limitLoopCount;
-    private IFunction<criAtomExPlayer_Stop>? stop;
-    private IFunction<criAtomExPlayer_SetAisacControlByName>? setAisacControlByName;
-
     private bool devMode;
-    private IHook<criAtomExPlayer_Create>? createHook;
-    private IHook<criAtomExAcb_LoadAcbFile>? loadAcbFileHook;
-    private IHook<criAtomExAcb_LoadAcbData>? loadAcbDataHook;
-    private IHook<criAtomAwb_LoadToc>? loadToc;
-    private IHook<criAtomExAcf_GetCategoryInfoByIndex>? acfGetCategoryInfoByIdHook;
 
-    // Private.
-    private criAtomExCategory_SetVolumeById? setVolumeById;
-    private criAtomExCategory_GetVolume? getCategoryVolume;
-    private criAtomExCategory_GetVolumeById? getVolumeById;
-    private criAtomExCategory_SetVolume? setVolumeByIndex;
+    // Hooks.
+    private readonly HookContainer<criAtomExPlayer_Create> create;
+    private readonly HookContainer<criAtomExAcb_LoadAcbFile> loadAcbFile;
+    private readonly HookContainer<criAtomExAcb_LoadAcbData> loadAcbData;
+    private readonly HookContainer<criAtomAwb_LoadToc> loadToc;
 
-    // Shared.
+    // Wrappers.
     private readonly WrapperContainer<criAtomExPlayer_SetCueId> setCueId;
     private readonly WrapperContainer<criAtomExPlayer_SetCueName> setCueName;
     private readonly WrapperContainer<criAtomExPlayer_SetFile> setFile;
@@ -60,6 +38,24 @@ internal unsafe class CriAtomEx : ICriAtomEx
     private readonly WrapperContainer<criAtomExPlayback_GetTimeSyncedWithAudioMicro> getTimeSyncedWithAudioMicro;
     private readonly WrapperContainer<criAtomExPlayer_GetStatus> getStatus;
     private readonly WrapperContainer<criAtomExPlayer_ResetParameters> resetParameters;
+    private readonly WrapperContainer<criAtomExPlayer_GetNumPlayedSamples> getNumPlayedSamples;
+    private readonly WrapperContainer<criAtomExCategory_SetVolumeById> setVolumeById;
+    private readonly WrapperContainer<criAtomExCategory_GetVolume> getCategoryVolume;
+    private readonly WrapperContainer<criAtomExCategory_GetVolumeById> getVolumeById;
+    private readonly WrapperContainer<criAtomExCategory_SetVolume> setVolumeByIndex;
+    private readonly WrapperContainer<criAtomExPlayer_SetFormat> setFormat;
+    private readonly WrapperContainer<criAtomExPlayer_SetSamplingRate> setSamplingRate;
+    private readonly WrapperContainer<criAtomExPlayer_SetNumChannels> setNumChannels;
+    private readonly WrapperContainer<criAtomExPlayer_SetVolume> setVolume;
+    private readonly WrapperContainer<criAtomExPlayer_SetCategoryById> setCategoryById;
+    private readonly WrapperContainer<criAtomExPlayer_GetLastPlaybackId> getLastPlaybackId;
+    private readonly WrapperContainer<criAtomExPlayer_SetCategoryByName> setCategoryByName;
+    private readonly WrapperContainer<criAtomExPlayer_GetCategoryInfo> getCategoryInfo;
+    private readonly WrapperContainer<criAtomExPlayer_UpdateAll> updateAll;
+    private readonly WrapperContainer<criAtomExPlayer_LimitLoopCount> limitLoopCount;
+    private readonly WrapperContainer<criAtomExPlayer_Stop> stop;
+    private readonly WrapperContainer<criAtomExPlayer_SetAisacControlByName> setAisacControlByName;
+    private readonly WrapperContainer<criAtomExAcf_GetCategoryInfoByIndex> acfGetCategoryInfoById;
 
     public CriAtomEx(string game, ISharedScans scans)
     {
@@ -105,129 +101,71 @@ internal unsafe class CriAtomEx : ICriAtomEx
         scans.AddScan<criAtomExPlayer_ResetParameters>(this.patterns.criAtomExPlayer_ResetParameters);
         this.resetParameters = scans.CreateWrapper<criAtomExPlayer_ResetParameters>(Mod.NAME);
 
-        ScanHooks.Add(
-            nameof(criAtomExAcf_GetCategoryInfoByIndex),
-            this.patterns.criAtomExAcf_GetCategoryInfoByIndex,
-            (hooks, result) =>
-            {
-                this.acfGetCategoryInfoByIdHook = hooks.CreateHook<criAtomExAcf_GetCategoryInfoByIndex>(this.Acf_GetCategoryInfoById, 0x140643f6c).Activate();
-            });
+        scans.AddScan<criAtomExAcf_GetCategoryInfoByIndex>(this.patterns.criAtomExAcf_GetCategoryInfoByIndex);
+        this.acfGetCategoryInfoById = scans.CreateWrapper<criAtomExAcf_GetCategoryInfoByIndex>(Mod.NAME);
 
-        ScanHooks.Add(
-            nameof(criAtomExCategory_GetVolume),
-            this.patterns.criAtomExCategory_GetVolume,
-            (hooks, result) => this.getCategoryVolume = hooks.CreateWrapper<criAtomExCategory_GetVolume>(result, out _));
+        scans.AddScan<criAtomExCategory_GetVolume>(this.patterns.criAtomExCategory_GetVolume);
+        this.getCategoryVolume = scans.CreateWrapper<criAtomExCategory_GetVolume>(Mod.NAME);
+        
+        scans.AddScan<criAtomExCategory_SetVolumeById>(this.patterns.criAtomExCategory_SetVolumeById);
+        this.setVolumeById = scans.CreateWrapper<criAtomExCategory_SetVolumeById>(Mod.NAME);
 
-        ScanHooks.Add(
-            nameof(criAtomExCategory_SetVolumeById),
-            this.patterns.criAtomExCategory_SetVolumeById,
-            (hooks, result) => this.setVolumeById = hooks.CreateWrapper<criAtomExCategory_SetVolumeById>(result, out _));
+        scans.AddScan<criAtomExCategory_SetVolume>(this.patterns.criAtomExCategory_SetVolume);
+        this.setVolumeByIndex = scans.CreateWrapper<criAtomExCategory_SetVolume>(Mod.NAME);
 
-        ScanHooks.Add(
-            nameof(criAtomExCategory_SetVolume),
-            this.patterns.criAtomExCategory_SetVolume,
-            (hooks, result) => this.setVolumeByIndex = hooks.CreateWrapper<criAtomExCategory_SetVolume>(result, out _));
+        scans.AddScan<criAtomExPlayer_Create>(this.patterns.criAtomExPlayer_Create);
+        this.create = scans.CreateHook<criAtomExPlayer_Create>(this.Player_Create, Mod.NAME);
 
-        ScanHooks.Add(
-            nameof(criAtomExPlayer_Create),
-            this.patterns.criAtomExPlayer_Create,
-            (hooks, result) =>
-            {
-                this.create = hooks.CreateFunction<criAtomExPlayer_Create>(result);
-                this.createHook = this.create.Hook(this.Player_Create).Activate();
-            });
+        scans.AddScan<criAtomExAcb_LoadAcbFile>(this.patterns.criAtomExAcb_LoadAcbFile);
+        this.loadAcbFile = scans.CreateHook<criAtomExAcb_LoadAcbFile>(this.Acb_LoadAcbFile, Mod.NAME);
 
-        ScanHooks.Add(
-            nameof(criAtomExAcb_LoadAcbFile),
-            this.patterns.criAtomExAcb_LoadAcbFile,
-            (hooks, result) =>
-            {
-                this.loadAcbFile = hooks.CreateFunction<criAtomExAcb_LoadAcbFile>(result);
-                this.loadAcbFileHook = this.loadAcbFile.Hook(this.Acb_LoadAcbFile).Activate();
-            });
+        scans.AddScan<criAtomAwb_LoadToc>(this.patterns.criAtomAwb_LoadToc);
+        this.loadToc = scans.CreateHook<criAtomAwb_LoadToc>(this.Awb_LoadToc, Mod.NAME);
 
-        ScanHooks.Add(
-            nameof(criAtomAwb_LoadToc),
-            this.patterns.criAtomAwb_LoadToc,
-            (hooks, result) =>
-            {
-                this.loadToc = hooks.CreateHook<criAtomAwb_LoadToc>(this.Awb_LoadToc, result).Activate();
-            });
+        scans.AddScan<criAtomExAcb_LoadAcbData>(this.patterns.criAtomExAcb_LoadAcbData);
+        this.loadAcbData = scans.CreateHook<criAtomExAcb_LoadAcbData>(this.Acb_LoadAcbData, Mod.NAME);
 
-        ScanHooks.Add(
-            nameof(criAtomExAcb_LoadAcbData),
-            this.patterns.criAtomExAcb_LoadAcbData,
-            (hooks, result) => this.loadAcbDataHook = hooks.CreateHook<criAtomExAcb_LoadAcbData>(this.Acb_LoadAcbData, result).Activate());
+        scans.AddScan<criAtomExCategory_GetVolumeById>(this.patterns.criAtomExCategory_GetVolumeById);
+        this.getVolumeById = scans.CreateWrapper<criAtomExCategory_GetVolumeById>(Mod.NAME);
 
-        ScanHooks.Add(
-            nameof(criAtomExPlayer_GetNumPlayedSamples),
-            this.patterns.criAtomExPlayer_GetNumPlayedSamples,
-            (hooks, result) => this.getNumPlayedSamples = hooks.CreateFunction<criAtomExPlayer_GetNumPlayedSamples>(result));
+        scans.AddScan<criAtomExPlayer_GetNumPlayedSamples>(this.patterns.criAtomExPlayer_GetNumPlayedSamples);
+        this.getNumPlayedSamples = scans.CreateWrapper<criAtomExPlayer_GetNumPlayedSamples>(Mod.NAME);
 
-        ScanHooks.Add(
-            nameof(criAtomExPlayer_SetFormat),
-            this.patterns.criAtomExPlayer_SetFormat,
-            (hooks, result) => this.setFormat = hooks.CreateFunction<criAtomExPlayer_SetFormat>(result));
+        scans.AddScan<criAtomExPlayer_SetFormat>(this.patterns.criAtomExPlayer_SetFormat);
+        this.setFormat = scans.CreateWrapper<criAtomExPlayer_SetFormat>(Mod.NAME);
 
-        ScanHooks.Add(
-            nameof(criAtomExPlayer_SetSamplingRate),
-            this.patterns.criAtomExPlayer_SetSamplingRate,
-            (hooks, result) => this.setSamplingRate = hooks.CreateFunction<criAtomExPlayer_SetSamplingRate>(result));
+        scans.AddScan<criAtomExPlayer_SetSamplingRate>(this.patterns.criAtomExPlayer_SetSamplingRate);
+        this.setSamplingRate = scans.CreateWrapper<criAtomExPlayer_SetSamplingRate>(Mod.NAME);
 
-        ScanHooks.Add(
-            nameof(criAtomExPlayer_SetNumChannels),
-            this.patterns.criAtomExPlayer_SetNumChannels,
-            (hooks, result) => this.setNumChannels = hooks.CreateFunction<criAtomExPlayer_SetNumChannels>(result));
+        scans.AddScan<criAtomExPlayer_SetNumChannels>(this.patterns.criAtomExPlayer_SetNumChannels);
+        this.setNumChannels = scans.CreateWrapper<criAtomExPlayer_SetNumChannels>(Mod.NAME);
 
-        ScanHooks.Add(
-            nameof(criAtomExCategory_GetVolumeById),
-            this.patterns.criAtomExCategory_GetVolumeById,
-            (hooks, result) => this.getVolumeById = hooks.CreateWrapper<criAtomExCategory_GetVolumeById>(result, out _));
+        scans.AddScan<criAtomExPlayer_SetVolume>(this.patterns.criAtomExPlayer_SetVolume);
+        this.setVolume = scans.CreateWrapper<criAtomExPlayer_SetVolume>(Mod.NAME);
 
-        ScanHooks.Add(
-            nameof(criAtomExPlayer_SetVolume),
-            this.patterns.criAtomExPlayer_SetVolume,
-            (hooks, result) => this.setVolume = hooks.CreateFunction<criAtomExPlayer_SetVolume>(result));
+        scans.AddScan<criAtomExPlayer_SetCategoryById>(this.patterns.criAtomExPlayer_SetCategoryById);
+        this.setCategoryById = scans.CreateWrapper<criAtomExPlayer_SetCategoryById>(Mod.NAME);
 
-        ScanHooks.Add(
-            nameof(criAtomExPlayer_SetCategoryById),
-            this.patterns.criAtomExPlayer_SetCategoryById,
-            (hooks, result) => this.setCategoryById = hooks.CreateFunction<criAtomExPlayer_SetCategoryById>(result));
+        scans.AddScan<criAtomExPlayer_GetLastPlaybackId>(this.patterns.criAtomExPlayer_GetLastPlaybackId);
+        this.getLastPlaybackId = scans.CreateWrapper<criAtomExPlayer_GetLastPlaybackId>(Mod.NAME);
 
-        ScanHooks.Add(
-            nameof(criAtomExPlayer_GetLastPlaybackId),
-            this.patterns.criAtomExPlayer_GetLastPlaybackId,
-            (hooks, result) => this.getLastPlaybackId = hooks.CreateFunction<criAtomExPlayer_GetLastPlaybackId>(result));
+        scans.AddScan<criAtomExPlayer_SetCategoryByName>(this.patterns.criAtomExPlayer_SetCategoryByName);
+        this.setCategoryByName = scans.CreateWrapper<criAtomExPlayer_SetCategoryByName>(Mod.NAME);
 
-        ScanHooks.Add(
-            nameof(criAtomExPlayer_SetCategoryByName),
-            this.patterns.criAtomExPlayer_SetCategoryByName,
-            (hooks, result) => this.setCategoryByName = hooks.CreateFunction<criAtomExPlayer_SetCategoryByName>(result));
+        scans.AddScan<criAtomExPlayer_GetCategoryInfo>(this.patterns.criAtomExPlayer_GetCategoryInfo);
+        this.getCategoryInfo = scans.CreateWrapper<criAtomExPlayer_GetCategoryInfo>(Mod.NAME);
 
-        ScanHooks.Add(
-            nameof(criAtomExPlayer_GetCategoryInfo),
-            this.patterns.criAtomExPlayer_GetCategoryInfo,
-            (hooks, result) => this.getCategoryInfo = hooks.CreateFunction<criAtomExPlayer_GetCategoryInfo>(result));
+        scans.AddScan<criAtomExPlayer_UpdateAll>(this.patterns.criAtomExPlayer_UpdateAll);
+        this.updateAll = scans.CreateWrapper<criAtomExPlayer_UpdateAll>(Mod.NAME);
 
-        ScanHooks.Add(
-            nameof(criAtomExPlayer_UpdateAll),
-            this.patterns.criAtomExPlayer_UpdateAll,
-            (hooks, result) => this.updateAll = hooks.CreateFunction<criAtomExPlayer_UpdateAll>(result));
+        scans.AddScan<criAtomExPlayer_LimitLoopCount>(this.patterns.criAtomExPlayer_LimitLoopCount);
+        this.limitLoopCount = scans.CreateWrapper<criAtomExPlayer_LimitLoopCount>(Mod.NAME);
 
-        ScanHooks.Add(
-            nameof(criAtomExPlayer_LimitLoopCount),
-            this.patterns.criAtomExPlayer_LimitLoopCount,
-            (hooks, result) => this.limitLoopCount = hooks.CreateFunction<criAtomExPlayer_LimitLoopCount>(result));
+        scans.AddScan<criAtomExPlayer_Stop>(this.patterns.criAtomExPlayer_Stop);
+        this.stop = scans.CreateWrapper<criAtomExPlayer_Stop>(Mod.NAME);
 
-        ScanHooks.Add(
-            nameof(criAtomExPlayer_Stop),
-            this.patterns.criAtomExPlayer_Stop,
-            (hooks, result) => this.stop = hooks.CreateFunction<criAtomExPlayer_Stop>(result));
-
-        ScanHooks.Add(
-            nameof(criAtomExPlayer_SetAisacControlByName),
-            this.patterns.criAtomExPlayer_SetAisacControlByName,
-            (hooks, result) => this.setAisacControlByName = hooks.CreateFunction<criAtomExPlayer_SetAisacControlByName>(result));
+        scans.AddScan<criAtomExPlayer_SetAisacControlByName>(this.patterns.criAtomExPlayer_SetAisacControlByName);
+        this.setAisacControlByName = scans.CreateWrapper<criAtomExPlayer_SetAisacControlByName>(Mod.NAME);
     }
 
     public void SetDevMode(bool devMode) => this.devMode = devMode;
@@ -238,15 +176,11 @@ internal unsafe class CriAtomEx : ICriAtomEx
 
     public bool Acb_GetCueInfoByName(nint acbHn, nint name, CriAtomExCueInfoTag* info) => this.getCueInfoByName.Wrapper(acbHn, name, info);
 
-    public bool Acf_GetCategoryInfoById(ushort id, CriAtomExCategoryInfoTag* info)
-    {
-        var result = this.acfGetCategoryInfoByIdHook!.OriginalFunction(id, info);
-        return result;
-    }
+    public bool Acf_GetCategoryInfoById(ushort id, CriAtomExCategoryInfoTag* info) => this.acfGetCategoryInfoById.Wrapper(id, info);
 
     public nint Acb_LoadAcbData(nint acbData, int acbDataSize, nint awbBinder, nint awbPath, void* work, int workSize)
     {
-        var acbHn = (AcbHn*)this.loadAcbDataHook!.OriginalFunction(acbData, acbDataSize, awbBinder, awbPath, work, workSize);
+        var acbHn = (AcbHn*)this.loadAcbData.Hook!.OriginalFunction(acbData, acbDataSize, awbBinder, awbPath, work, workSize);
         CriAtomRegistry.RegisterAcb(acbHn);
         return (nint)acbHn;
     }
@@ -270,11 +204,11 @@ internal unsafe class CriAtomEx : ICriAtomEx
 
     public CriAtomExPlayerStatusTag Player_GetStatus(nint playerHn) => this.getStatus.Wrapper(playerHn);
 
-    public void Player_LimitLoopCount(nint playerHn, int count) => this.limitLoopCount!.GetWrapper()(playerHn, count);
+    public void Player_LimitLoopCount(nint playerHn, int count) => this.limitLoopCount.Wrapper(playerHn, count);
 
-    public void Player_Stop(nint playerHn) => this.stop!.GetWrapper()(playerHn);
+    public void Player_Stop(nint playerHn) => this.stop.Wrapper(playerHn);
 
-    public void Player_SetAisacControlByName(nint playerHn, byte* controlName, float controlValue)  => this.setAisacControlByName!.GetWrapper()(playerHn, controlName, controlValue);
+    public void Player_SetAisacControlByName(nint playerHn, byte* controlName, float controlValue)  => this.setAisacControlByName.Wrapper(playerHn, controlName, controlValue);
 
     public void Player_SetCueId(nint playerHn, nint acbHn, int cueId)  => this.setCueId.Wrapper(playerHn, acbHn, cueId);
 
@@ -290,28 +224,28 @@ internal unsafe class CriAtomEx : ICriAtomEx
 
     public void Player_SetFile(nint playerHn, nint criBinderHn, byte* path) => this.setFile.Wrapper(playerHn, criBinderHn, path);
 
-    public void Player_SetFormat(nint playerHn, CriAtomFormat format) => this.setFormat!.GetWrapper()(playerHn, format);
+    public void Player_SetFormat(nint playerHn, CriAtomFormat format) => this.setFormat.Wrapper(playerHn, format);
 
-    public void Player_SetNumChannels(nint playerHn, int numChannels) => this.setNumChannels!.GetWrapper()(playerHn, numChannels);
+    public void Player_SetNumChannels(nint playerHn, int numChannels) => this.setNumChannels.Wrapper(playerHn, numChannels);
 
-    public void Player_SetCategoryById(nint playerHn, uint id) => this.setCategoryById!.GetWrapper()(playerHn, id);
+    public void Player_SetCategoryById(nint playerHn, uint id) => this.setCategoryById.Wrapper(playerHn, id);
 
-    public void Player_SetSamplingRate(nint playerHn, int samplingRate) => this.setSamplingRate!.GetWrapper()(playerHn, samplingRate);
+    public void Player_SetSamplingRate(nint playerHn, int samplingRate) => this.setSamplingRate.Wrapper(playerHn, samplingRate);
 
-    public uint Player_GetLastPlaybackId(nint playerHn) => this.getLastPlaybackId!.GetWrapper()(playerHn);
+    public uint Player_GetLastPlaybackId(nint playerHn) => this.getLastPlaybackId.Wrapper(playerHn);
 
-    public void Player_SetCategoryByName(nint playerHn, byte* name) => this.setCategoryByName!.GetWrapper()(playerHn, name);
+    public void Player_SetCategoryByName(nint playerHn, byte* name) => this.setCategoryByName.Wrapper(playerHn, name);
 
-    public bool Player_GetCategoryInfo(nint playerHn, ushort index, CriAtomExCategoryInfoTag* info) => this.getCategoryInfo!.GetWrapper()(playerHn, index, info);
+    public bool Player_GetCategoryInfo(nint playerHn, ushort index, CriAtomExCategoryInfoTag* info) => this.getCategoryInfo.Wrapper(playerHn, index, info);
 
     public int Playback_GetTimeSyncedWithAudioMicro(uint playbackId) => this.getTimeSyncedWithAudioMicro.Wrapper(playbackId);
 
     public float Category_GetVolumeById(uint id)
     {
         // Use existing CriAtom function.
-        if (this.getVolumeById != null)
+        if (this.getVolumeById.Wrapper != null)
         {
-            return this.getVolumeById(id);
+            return this.getVolumeById.Wrapper(id);
         }
 
         // Reimplement function if missing (like in P3R).
@@ -319,31 +253,31 @@ internal unsafe class CriAtomEx : ICriAtomEx
     }
 
     public void Player_SetVolume(nint playerHn, float volume)
-        => this.setVolume!.GetWrapper()(playerHn, volume);
+        => this.setVolume.Wrapper(playerHn, volume);
 
     public void Category_SetVolumeById(uint id, float volume)
     {
         // Use existing CriAtom function.
-        if (this.setVolumeById != null)
+        if (this.setVolumeById.Wrapper != null)
         {
-            this.setVolumeById(id, volume);
+            this.setVolumeById.Wrapper(id, volume);
             return;
         }
 
         // Reimplement function if missing (like in STMV).
         var catIndex = this.Config_GetCategoryIndexById(id);
-        this.setVolumeByIndex!(catIndex, volume);
+        this.setVolumeByIndex.Wrapper(catIndex, volume);
     }
 
     public ushort Config_GetCategoryIndexById(uint id) => this.getCategoryIndex.Wrapper(id);
 
-    public float Category_GetVolume(ushort index) => this.getCategoryVolume!(index);
+    public float Category_GetVolume(ushort index) => this.getCategoryVolume.Wrapper(index);
 
     public void Player_SetData(nint playerHn, byte* buffer, int size)
         => this.setData.Wrapper(playerHn, buffer, size);
 
     public void Player_UpdateAll(nint playerHn)
-        => this.updateAll!.GetWrapper()(playerHn);
+        => this.updateAll.Wrapper(playerHn);
 
     public nint Player_Create(CriAtomExPlayerConfigTag* config, void* work, int workSize)
     {
@@ -362,7 +296,7 @@ internal unsafe class CriAtomEx : ICriAtomEx
             currentConfigPtr = config;
         }
 
-        var playerHn = this.createHook!.OriginalFunction(currentConfigPtr, work, workSize);
+        var playerHn = this.create.Hook!.OriginalFunction(currentConfigPtr, work, workSize);
         this.players.Add(new(playerId, playerHn));
         CriAtomRegistry.RegisterPlayer(playerHn);
 
@@ -371,7 +305,7 @@ internal unsafe class CriAtomEx : ICriAtomEx
 
     private nint Acb_LoadAcbFile(nint acbBinder, byte* acbPathStr, nint awbBinder, byte* awbPathStr, void* work, int workSize)
     {
-        var acbHn = (AcbHn*)this.loadAcbFileHook!.OriginalFunction(acbBinder, acbPathStr, awbBinder, awbPathStr, work, workSize);
+        var acbHn = (AcbHn*)this.loadAcbFile.Hook!.OriginalFunction(acbBinder, acbPathStr, awbBinder, awbPathStr, work, workSize);
         //Log.Debug($"{nameof(criAtomExAcb_LoadAcbFile)} || Path: {acbPath} || Hn: {(nint)acbHn:X}");
         CriAtomRegistry.RegisterAcb(acbHn);
 
@@ -380,7 +314,7 @@ internal unsafe class CriAtomEx : ICriAtomEx
 
     private nint Awb_LoadToc(nint binder, nint path, void* work, int workSize)
     {
-        var awbHn = this.loadToc!.OriginalFunction(binder, path, work, workSize);
+        var awbHn = this.loadToc.Hook!.OriginalFunction(binder, path, work, workSize);
         var awbPath = Marshal.PtrToStringAnsi(path)!;
         CriAtomRegistry.RegisterAwb(awbPath, awbHn);
         return awbHn;

@@ -45,9 +45,9 @@
   <ItemGroup>
     <PackageReference Include="Reloaded.Mod.Interfaces" Version="2.4.0" ExcludeAssets="runtime" />
     <PackageReference Include="Reloaded.SharedLib.Hooks" Version="1.9.0" />
-    <PackageReference Include="RyoTune.Reloaded" Version="1.0.0" />
-    <PackageReference Include="SharedScans.Interfaces" Version="1.1.0" />
-    <PackageReference Include="YamlDotNet" Version="15.1.2" />
+    <PackageReference Include="RyoTune.Reloaded" Version="2.1.1" />
+    <PackageReference Include="SharedScans.Interfaces" Version="1.2.0" />
+    <PackageReference Include="YamlDotNet" Version="16.3.0" />
   </ItemGroup>
 
   <ItemGroup>
