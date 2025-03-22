@@ -54,7 +54,7 @@
       "AssetFileName": "Mod.zip"
     }
   },
-  "IsUniversalMod": false,
+  "IsUniversalMod": true,
   "ModDependencies": [
     "Reloaded.Memory.SigScan.ReloadedII",
     "reloaded.sharedlib.hooks",
