@@ -60,7 +60,7 @@ internal unsafe class CriAtomEx : ICriAtomEx
     public CriAtomEx(string game, ISharedScans scans)
     {
         this.game = game;
-        this.patterns = CriAtomExGames.GetGamePatterns(game);
+        this.patterns = CriAtomExPatterns.GetGamePatterns(game);
 
         scans.AddScan<criAtomExPlayer_SetCueId>(this.patterns.criAtomExPlayer_SetCueId);
         this.setCueId = scans.CreateWrapper<criAtomExPlayer_SetCueId>(Mod.NAME);
