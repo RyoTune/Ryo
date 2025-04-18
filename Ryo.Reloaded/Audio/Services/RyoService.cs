@@ -19,7 +19,7 @@ internal unsafe class RyoService
         this.criAtomEx = criAtomEx;
         this.criAtomRegistry = criAtomRegistry;
 
-        var patterns = CriAtomExGames.GetGamePatterns(game);
+        var patterns = CriAtomExPatterns.GetGamePatterns(game);
         if (patterns.criAtomExPlayer_SetFile != null)
         {
             Log.Debug($"New audio uses: {nameof(criAtomExPlayer_SetFile)}");

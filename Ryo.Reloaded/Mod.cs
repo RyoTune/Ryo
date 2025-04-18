@@ -6,13 +6,13 @@ using Ryo.Interfaces;
 using Ryo.Reloaded.Audio;
 using Ryo.Reloaded.Configuration;
 using Ryo.Reloaded.CRI.CriAtomEx;
-using Ryo.Reloaded.CRI.CriUnreal;
 using Ryo.Reloaded.CRI.Mana;
 using Ryo.Reloaded.Movies;
 using Ryo.Reloaded.Template;
 using SharedScans.Interfaces;
 using System.Diagnostics;
 using System.Drawing;
+using Ryo.Reloaded.CRI.CriWare;
 
 namespace Ryo.Reloaded;
 
@@ -32,8 +32,8 @@ public class Mod : ModBase, IExports
 
     private readonly CriAtomEx criAtomEx;
     private readonly CriAtomRegistry criAtomRegistry;
-    private readonly CriUnreal criUnreal;
     private readonly CriMana criMana;
+    private readonly CriWareHooks criHooks;
 
     private readonly AudioRegistry audioRegistry;
     private readonly AudioService audioService;
@@ -71,8 +71,8 @@ public class Mod : ModBase, IExports
         this.criAtomRegistry = new();
         this.modLoader.AddOrReplaceController<ICriAtomRegistry>(this.owner, this.criAtomRegistry);
 
-        this.criUnreal = new(this.game);
         this.criMana = new(scans!, this.game);
+        this.criHooks = new(scans!, this.game);
 
         this.audioRegistry = new(this.game, this.preprocessor);
         this.audioService = new(this.game, scans!, this.criAtomEx, this.criAtomRegistry, this.audioRegistry);
@@ -118,7 +118,6 @@ public class Mod : ModBase, IExports
     {
         Log.LogLevel = this.config.LogLevel;
         this.criAtomEx.SetDevMode(this.config.DevMode);
-        this.criUnreal.SetDevMode(this.config.DevMode);
         this.audioService.SetDevMode(this.config.DevMode);
         this.movieService.SetDevMode(this.config.DevMode);
     }
