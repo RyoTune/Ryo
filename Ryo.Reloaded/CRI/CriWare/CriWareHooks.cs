@@ -1,5 +1,6 @@
 // ReSharper disable InconsistentNaming
 
+using System.Buffers.Binary;
 using System.Runtime.InteropServices;
 using SharedScans.Interfaces;
 
@@ -9,17 +10,17 @@ public unsafe class CriWareHooks
 {
     private delegate nint HCADecoder_DecodeHeader(HcaDecoded* hca, Hca* param_2, nint param_3, byte* param_4, nint param_5, nint* param_6);
     
-    private readonly HookContainer<HCADecoder_DecodeHeader> _decodeHeader;
+    private readonly HookContainer<HCADecoder_DecodeHeader> _hcaDecodeHeader;
 
     public CriWareHooks(ISharedScans scans, string game)
     {
         var patterns = CriWarePatterns.GetGamePatterns(game);
         
         scans.AddScan<HCADecoder_DecodeHeader>(patterns.HCADecoder_DecodeHeader);
-        _decodeHeader = scans.CreateHook<HCADecoder_DecodeHeader>(DecodeHeader, Mod.NAME);
+        _hcaDecodeHeader = scans.CreateHook<HCADecoder_DecodeHeader>(HcaDecodeHeader, Mod.NAME);
     }
 
-    private nint DecodeHeader(HcaDecoded* hcaOut, Hca* hcaSrc, nint param_3, byte* param_4, nint param_5, nint* param_6)
+    private nint HcaDecodeHeader(HcaDecoded* hcaOut, Hca* hcaSrc, nint param_3, byte* param_4, nint param_5, nint* param_6)
     {
         // Remove encryption key from output if source is unencrypted (checks for readable HCA sig).
         if (hcaSrc->Signature == 0x414348)
@@ -27,7 +28,7 @@ public unsafe class CriWareHooks
             hcaOut->EncryptionKey = 0;
         }
         
-        return _decodeHeader.Hook!.OriginalFunction(hcaOut, hcaSrc, param_3, param_4, param_5, param_6);;
+        return _hcaDecodeHeader.Hook!.OriginalFunction(hcaOut, hcaSrc, param_3, param_4, param_5, param_6);;
     }
 
     [StructLayout(LayoutKind.Explicit)]
