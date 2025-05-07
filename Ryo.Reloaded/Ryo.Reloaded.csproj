@@ -47,6 +47,7 @@
     <PackageReference Include="Reloaded.SharedLib.Hooks" Version="1.9.0" />
     <PackageReference Include="RyoTune.Reloaded" Version="2.1.1" />
     <PackageReference Include="SharedScans.Interfaces" Version="1.2.0" />
+    <PackageReference Include="System.IO.Hashing" Version="9.0.4" />
     <PackageReference Include="YamlDotNet" Version="16.3.0" />
   </ItemGroup>
 

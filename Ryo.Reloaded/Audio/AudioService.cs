@@ -1,4 +1,5 @@
-﻿using Ryo.Definitions.Structs;
+﻿using System.IO.Hashing;
+using Ryo.Definitions.Structs;
 using Ryo.Interfaces;
 using Ryo.Reloaded.Audio.Services;
 using Ryo.Reloaded.CRI.CriAtomEx;
@@ -21,6 +22,7 @@ internal unsafe class AudioService
     private readonly HookContainer<criAtomExPlayer_SetCueId> setCueId;
     private readonly HookContainer<criAtomExPlayer_SetFile> setFile;
     private readonly HookContainer<criAtomExPlayer_SetWaveId> setWaveId;
+    private readonly HookContainer<criAtomExPlayer_SetData> setData;
 
     private bool devMode;
 
@@ -44,6 +46,7 @@ internal unsafe class AudioService
         this.setCueId = scans.CreateHook<criAtomExPlayer_SetCueId>(this.CriAtomExPlayer_SetCueId, Mod.NAME);
         this.setFile = scans.CreateHook<criAtomExPlayer_SetFile>(this.CriAtomExPlayer_SetFile, Mod.NAME);
         this.setWaveId = scans.CreateHook<criAtomExPlayer_SetWaveId>(this.CriAtomExPlayer_SetWaveId, Mod.NAME);
+        this.setData = scans.CreateHook<criAtomExPlayer_SetData>(this.CriAtomExPlayer_SetData, Mod.NAME);
     }
 
     public void SetDevMode(bool devMode)
@@ -137,9 +140,9 @@ internal unsafe class AudioService
             Log.Information($"{nameof(criAtomExPlayer_SetFile)} || Player: {player.Id} || {filePath}");
         }
 
-        if (filePath != null && this.audioRegistry.TryGetFileContainer(filePath, out var file))
+        if (filePath != null && this.audioRegistry.TryGetFileContainer(filePath, out var fileContainer))
         {
-            this.ryo.SetAudio(player, file, file.CategoryIds);
+            this.ryo.SetAudio(player, fileContainer, fileContainer.CategoryIds);
         }
         else
         {
@@ -157,13 +160,39 @@ internal unsafe class AudioService
             Log.Information($"{nameof(criAtomExPlayer_SetWaveId)} || Player: {player.Id} || AWB: {awbPath} || Wave ID: {waveId}");
         }
 
-        if (awbPath != null && this.audioRegistry.TryGetFileContainer($"{awbPath.Trim('/')}/{waveId}.wave", out var file))
+        if (awbPath != null && this.audioRegistry.TryGetFileContainer($"{awbPath.Trim('/')}/{waveId}.wave", out var fileContainer))
         {
-            this.ryo.SetAudio(player, file, file.CategoryIds);
+            this.ryo.SetAudio(player, fileContainer, fileContainer.CategoryIds);
         }
         else
         {
             this.setWaveId.Hook!.OriginalFunction(playerHn, awbHn, waveId);
+        }
+    }
+
+    private readonly Dictionary<AudioData, string> audioHashes = [];
+    private void CriAtomExPlayer_SetData(nint playerHn, byte* buffer, int size)
+    {
+        var player = this.criAtomRegistry.GetPlayerByHn(playerHn)!;
+        
+        var audioData = new AudioData((nint)buffer, size);
+        if (!this.audioHashes.TryGetValue(audioData, out var hash))
+        {
+            var hashBytes = XxHash3.Hash(new ReadOnlySpan<byte>(buffer, size));
+            hash = Convert.ToHexString(hashBytes);
+            this.audioHashes[audioData] = hash;
+        }
+        
+        if (this.devMode) Log.Information($"{nameof(criAtomExPlayer_SetData)} || Player: {player.Id} || Hash: {hash}");
+
+        if (this.audioRegistry.TryGetDataContainer(hash, out var dataContainer))
+        {
+            this.ryo.SetAudio(player, dataContainer, dataContainer.CategoryIds);
+            this.setData.Hook!.OriginalFunction(playerHn, (byte*)0, 0);
+        }
+        else
+        {
+            this.setData.Hook!.OriginalFunction(playerHn, buffer, size);
         }
     }
 
@@ -174,5 +203,21 @@ internal unsafe class AudioService
         public string? Name { get; init; }
 
         public int[]? Categories { get; init; }
+    }
+
+    private readonly struct AudioData : IEquatable<AudioData>
+    {
+        private readonly nint address;
+        private readonly int length;
+        
+        public AudioData(nint address, int length) 
+        {
+            this.address = address;
+            this.length = length;
+        }
+        
+        public bool Equals(AudioData other) => address == other.address && length == other.length;
+
+        public override int GetHashCode() => HashCode.Combine(address, length);
     }
 }

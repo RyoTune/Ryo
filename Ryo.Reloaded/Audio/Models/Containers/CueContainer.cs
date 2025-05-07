@@ -16,15 +16,9 @@ internal class CueContainer : AudioContainer
         {
             throw new ArgumentException($"'{nameof(acbName)}' cannot be null or empty.", nameof(acbName));
         }
-
-        CueName = cueName;
-        AcbName = acbName;
-        Name = $"Cue: {CueName} / {AcbName}";
+        
+        Name = $"Cue: {cueName} / {acbName}";
     }
-
-    public string CueName { get; }
-
-    public string AcbName { get; }
 
     public override string Name { get; }
 }

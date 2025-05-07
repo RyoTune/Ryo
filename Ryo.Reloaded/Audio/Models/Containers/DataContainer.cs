@@ -4,19 +4,16 @@ namespace Ryo.Reloaded.Audio.Models.Containers;
 
 internal class DataContainer : AudioContainer
 {
-    public DataContainer(string audioDataName, AudioConfig? config = null)
+    public DataContainer(string audioHash, AudioConfig? config = null)
         : base(config)
     {
-        if (string.IsNullOrEmpty(audioDataName))
+        if (string.IsNullOrEmpty(audioHash))
         {
-            throw new ArgumentException($"'{nameof(audioDataName)}' cannot be null or empty.", nameof(audioDataName));
+            throw new ArgumentException($"'{nameof(audioHash)}' cannot be null or empty.", nameof(audioHash));
         }
 
-        this.DataName = audioDataName;
-        this.Name = $"Audio Data: {this.DataName}";
+        this.Name = $"Audio Data: {audioHash}";
     }
-
-    public string DataName { get; }
 
     public override string Name { get; }
 }

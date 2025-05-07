@@ -12,11 +12,8 @@ internal class FileContainer : AudioContainer
             throw new ArgumentException($"'{nameof(filePath)}' cannot be null or empty.", nameof(filePath));
         }
 
-        this.FilePath = filePath;
-        this.Name = $"Audio File: {this.FilePath}";
+        this.Name = $"Audio File: {filePath}";
     }
-
-    public string FilePath { get; }
 
     public override string Name { get; }
 }

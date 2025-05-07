@@ -11,11 +11,13 @@ namespace Ryo.Reloaded.Audio;
 internal class AudioRegistry
 {
     private const string RYO_FILE_DIR_NAME = "FILE.ryo";
+    private const string RYO_DATA_DIR_NAME = "DATA.ryo";
 
     private readonly AudioConfig defaultConfig;
     private readonly AudioPreprocessor preprocessor;
     private readonly Dictionary<CueKey, List<AudioContainer>> cueContainers = new(CueComparer.Instance);
     private readonly Dictionary<string, List<AudioContainer>> fileContainers = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, List<AudioContainer>> dataContainers = new(StringComparer.OrdinalIgnoreCase);
 
     public AudioRegistry(string game, AudioPreprocessor preprocessor)
     {
@@ -70,6 +72,11 @@ internal class AudioRegistry
             config.AudioFilePath = parentDir[(fileDirIndex + RYO_FILE_DIR_NAME.Length + 1)..].Replace('\\', '/');
         }
 
+        if (file.Contains(RYO_DATA_DIR_NAME, StringComparison.OrdinalIgnoreCase))
+        {
+            config.AudioHash = Path.GetFileNameWithoutExtension(file);
+        }
+
         AudioContainer? container;
         var audio = new RyoAudio(file, config);
 
@@ -80,7 +87,7 @@ internal class AudioRegistry
         }
 
         // Create audio data container.
-        else if (config.AudioDataName != null)
+        else if (config.AudioHash != null)
         {
             container = this.CreateOrGetContainer(ContainerType.Data, config);
         }
@@ -114,6 +121,9 @@ internal class AudioRegistry
             case ContainerType.File:
                 container = RegisterOrGetSharedContainer(this.fileContainers, config.AudioFilePath!, new FileContainer(config.AudioFilePath!, config));
                 break;
+            case ContainerType.Data:
+                container = RegisterOrGetSharedContainer(this.dataContainers, config.AudioHash!, new DataContainer(config.AudioHash!, config));
+                break;
             default: throw new Exception("Unknown container.");
         }
 
@@ -146,13 +156,11 @@ internal class AudioRegistry
     }
 
     public IContainer[] GetContainersByGroup(string groupId)
-    {
-        var containers = this.cueContainers.Values.SelectMany(x => x)
+        => this.cueContainers.Values.SelectMany(x => x)
             .Concat(this.fileContainers.Values.SelectMany(x => x))
+            .Concat(this.dataContainers.Values.SelectMany(x => x))
             .Where(x => x.GroupId != null && x.GroupId == groupId)
-            .ToArray();
-        return containers;
-    }
+            .ToArray<IContainer>();
 
     public void AddAudioFile(string file)
         => this.AddAudioFile(file, null);
@@ -226,6 +234,18 @@ internal class AudioRegistry
     public bool TryGetFileContainer(string filePath, [NotNullWhen(true)] out AudioContainer? container)
     {
         if (this.fileContainers.TryGetValue(filePath, out var containerList))
+        {
+            container = containerList.LastOrDefault(x => x.IsEnabled);
+            return container != null;
+        }
+
+        container = null;
+        return false;
+    }
+
+    public bool TryGetDataContainer(string audioHash, [NotNullWhen(true)] out AudioContainer? container)
+    {
+        if (this.dataContainers.TryGetValue(audioHash, out var containerList))
         {
             container = containerList.LastOrDefault(x => x.IsEnabled);
             return container != null;

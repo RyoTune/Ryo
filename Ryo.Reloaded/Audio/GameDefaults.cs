@@ -55,25 +55,20 @@ internal static class GameDefaults
     {
         ["p5r"] = new()
         {
-            //AcbName = "bgm",
-            //CategoryIds = new int[] { 1, 8 },
             UsePlayerVolume = true,
         },
-        ["p4g"] = new()
+        ["p3p"] = new()
         {
-            //AcbName = "snd00_bgm",
-            //CategoryIds = new int[] { 6, 13 },
+            UsePlayerVolume = true,
         },
         ["p3r"] = new()
         {
             AcbName = "bgm",
-            //CategoryIds = new int[] { 0, 13 },
             Volume = 0.15f,
         },
         ["SMT5V-Win64-Shipping"] = new()
         {
             AcbName = "bgm",
-            //CategoryIds = new int[] { 0, 4, 9, 40, 24, 11, 43, 51 },
             Volume = 0.70f,
             VolumeCategoryId = 4,
         },
@@ -133,8 +128,14 @@ internal static class GameDefaults
                     maxPathStrings = 2,
                     voiceAllocationMethod = 1,
                     maxPath = 256,
-                    enableAudioSyncedTimer = true,
-                    updatesTime = true,
+                });
+                break;
+            case "p3p":
+                criAtomEx.SetPlayerConfigById(2, new()
+                {
+                    maxPathStrings = 10,
+                    voiceAllocationMethod = 1,
+                    maxPath = 256,
                 });
                 break;
             default: break;

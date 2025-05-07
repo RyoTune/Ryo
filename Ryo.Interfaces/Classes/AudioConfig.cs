@@ -1,4 +1,5 @@
 ﻿using Ryo.Definitions.Enums;
+using Ryo.Definitions.Functions;
 using Ryo.Interfaces.Enums;
 
 namespace Ryo.Interfaces.Classes;
@@ -29,21 +30,25 @@ public class AudioConfig
 
     /// <summary>
     /// Cue name this audio is assigned to. Can be a new or existing cue.
+    /// Used when replacing audio played with <see cref="CriAtomExFunctions.criAtomExPlayer_SetCueId"/> and <see cref="CriAtomExFunctions.criAtomExPlayer_SetCueName"/> .
     /// </summary>
     public string? CueName { get; set; }
 
     /// <summary>
-    /// Audio target ACB name.
+    /// ACB name the target cue is from.
+    /// Used when replacing audio played with <see cref="CriAtomExFunctions.criAtomExPlayer_SetCueId"/> and <see cref="CriAtomExFunctions.criAtomExPlayer_SetCueName"/> .
     /// </summary>
     public string? AcbName { get; set; }
 
     /// <summary>
-    /// Audio target data name.
+    /// The audio hash this audio is assigned to.
+    /// Used when replacing audio played with <see cref="CriAtomExFunctions.criAtomExPlayer_SetData"/>.
     /// </summary>
-    public string? AudioDataName { get; set; }
+    public string? AudioHash { get; set; }
 
     /// <summary>
     /// File path this audio is assigned to. Can be a new or existing file.
+    /// Used when replacing audio played with <see cref="CriAtomExFunctions.criAtomExPlayer_SetFile"/>.
     /// </summary>
     public string? AudioFilePath { get; set; }
 
@@ -118,7 +123,7 @@ public class AudioConfig
         this.Tags = newConfig.Tags ?? this.Tags;
         this.Key = newConfig.Key ?? this.Key;
         this.SharedContainerId = newConfig.SharedContainerId ?? this.SharedContainerId;
-        this.AudioDataName = newConfig.AudioDataName ?? this.AudioDataName;
+        this.AudioHash = newConfig.AudioHash ?? this.AudioHash;
         this.AudioFilePath = newConfig.AudioFilePath ?? this.AudioFilePath;
         this.PlaybackMode = newConfig.PlaybackMode ?? this.PlaybackMode;
         this.UsePlayerVolume = newConfig.UsePlayerVolume ?? this.UsePlayerVolume;
