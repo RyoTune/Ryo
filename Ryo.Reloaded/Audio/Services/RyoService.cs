@@ -1,7 +1,7 @@
 ﻿using Ryo.Interfaces;
 using Ryo.Reloaded.Audio.Models;
 using Ryo.Reloaded.Audio.Models.Containers;
-using Ryo.Reloaded.CRI.CriAtomEx;
+using SharedScans.Interfaces;
 using static Ryo.Definitions.Functions.CriAtomExFunctions;
 
 namespace Ryo.Reloaded.Audio.Services;
@@ -10,25 +10,19 @@ internal unsafe class RyoService
 {
     private readonly ICriAtomEx criAtomEx;
     private readonly ICriAtomRegistry criAtomRegistry;
-    private readonly Dictionary<int, float> modifiedCategories = new();
-    private readonly HashSet<nint> modifiedPlayers = new();
-    private readonly bool useSetFile;
+    private readonly Dictionary<int, float> modifiedCategories = [];
+    private readonly HashSet<nint> modifiedPlayers = [];
 
-    public RyoService(string game, ICriAtomEx criAtomEx, ICriAtomRegistry criAtomRegistry)
+    private bool setFileSupported;
+    private bool setDataSupported;
+
+    public RyoService(ICriAtomEx criAtomEx, ICriAtomRegistry criAtomRegistry, ISharedScans scans)
     {
         this.criAtomEx = criAtomEx;
         this.criAtomRegistry = criAtomRegistry;
 
-        var patterns = CriAtomExPatterns.GetGamePatterns(game);
-        if (patterns.criAtomExPlayer_SetFile != null)
-        {
-            Log.Debug($"New audio uses: {nameof(criAtomExPlayer_SetFile)}");
-            this.useSetFile = true;
-        }
-        else
-        {
-            Log.Debug($"New audio uses: {nameof(criAtomExPlayer_SetData)}");
-        }
+        scans.CreateListener<criAtomExPlayer_SetFile>(_ => setFileSupported = true);
+        scans.CreateListener<criAtomExPlayer_SetData>(_ => setDataSupported = true);
     }
 
     public void SetAudio(Player player, AudioContainer container, int[]? categories)
@@ -46,14 +40,18 @@ internal unsafe class RyoService
 
         var newAudio = container.GetAudio();
 
-        if (this.useSetFile)
+        if (this.setFileSupported)
         {
             this.criAtomEx.Player_SetFile(currentPlayer.Handle, IntPtr.Zero, (byte*)StringsCache.GetStringPtr(newAudio.FilePath));
         }
-        else
+        else if (this.setDataSupported)
         {
             var audioData = AudioCache.GetAudioData(newAudio.FilePath);
             this.criAtomEx.Player_SetData(currentPlayer.Handle, (byte*)audioData.Address, audioData.Size);
+        }
+        else
+        {
+            Log.Error($"{nameof(SetAudio)} || No supported method for playing new audio.");
         }
 
         this.SetAudioVolume(currentPlayer, newAudio, categories);
@@ -132,6 +130,4 @@ internal unsafe class RyoService
             Log.Debug($"Reset volume for Player ID: {player.Id}");
         }
     }
-
-    private record CategoryVolume(int CategoryId, float OriginalVolume);
 }
