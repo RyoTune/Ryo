@@ -37,7 +37,7 @@ internal unsafe class AudioService
         this.criAtomRegistry = criAtomRegistry;
         this.audioRegistry = audioRegistry;
 
-        this.ryo = new(game, criAtomEx, criAtomRegistry);
+        this.ryo = new(criAtomEx, criAtomRegistry, scans);
         this.virtualCue = new(game, scans, criAtomRegistry, audioRegistry);
 
         GameDefaults.ConfigureCriAtom(game, criAtomEx);
@@ -46,7 +46,11 @@ internal unsafe class AudioService
         this.setCueId = scans.CreateHook<criAtomExPlayer_SetCueId>(this.CriAtomExPlayer_SetCueId, Mod.NAME);
         this.setFile = scans.CreateHook<criAtomExPlayer_SetFile>(this.CriAtomExPlayer_SetFile, Mod.NAME);
         this.setWaveId = scans.CreateHook<criAtomExPlayer_SetWaveId>(this.CriAtomExPlayer_SetWaveId, Mod.NAME);
+        
+        // Still WIP.
+#if DEBUG
         this.setData = scans.CreateHook<criAtomExPlayer_SetData>(this.CriAtomExPlayer_SetData, Mod.NAME);
+#endif
     }
 
     public void SetDevMode(bool devMode)
