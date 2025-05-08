@@ -1,3 +1,7 @@
+General Mod License
+
+https://ryotune.github.io/licensing/mod-license/
+
 Copyright (c) 2025 RyoTune. All rights reserved.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
