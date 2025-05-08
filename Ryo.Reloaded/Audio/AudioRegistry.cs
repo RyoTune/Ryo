@@ -255,15 +255,6 @@ internal class AudioRegistry
         return false;
     }
 
-    public void PreloadAudio()
-    {
-        var allFiles = this.cueContainers.Values.Select(x => x.SelectMany(x => x.GetContainerFiles())).SelectMany(x => x).ToArray();
-        foreach (var file in allFiles)
-        {
-            AudioCache.GetAudioData(file);
-        }
-    }
-
     private static AudioConfig? ParseConfigFile(string configFile)
     {
         try

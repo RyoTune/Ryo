@@ -14,10 +14,10 @@ public class Config : Configurable<Config>
     [DefaultValue(false)]
     public bool DevMode { get; set; } = false;
 
-    [DisplayName("Preload Audio Data")]
-    [Description("Loads all audio files into memory. DON'T USE UNDER NORMAL CIRCUMSTANCES!")]
-    [DefaultValue(false)]
-    public bool PreloadAudio { get; set; } = false;
+    [DisplayName("Unencrypted HCA Support")]
+    [Description("Enables support for playing unencrypted HCA in games with audio encryption. (Experimental)")]
+    [DefaultValue(true)]
+    public bool UnencryptedHcaEnabled { get; set; } = true;
 }
 
 /// <summary>

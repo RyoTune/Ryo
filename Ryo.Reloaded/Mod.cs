@@ -1,5 +1,7 @@
-﻿using Reloaded.Hooks.ReloadedII.Interfaces;
-using Reloaded.Memory.SigScan.ReloadedII.Interfaces;
+﻿#if DEBUG
+using System.Diagnostics;
+#endif
+
 using Reloaded.Mod.Interfaces;
 using Reloaded.Mod.Interfaces.Internal;
 using Ryo.Interfaces;
@@ -10,7 +12,6 @@ using Ryo.Reloaded.CRI.Mana;
 using Ryo.Reloaded.Movies;
 using Ryo.Reloaded.Template;
 using SharedScans.Interfaces;
-using System.Diagnostics;
 using System.Drawing;
 using Ryo.Reloaded.CRI.CriWare;
 
@@ -21,7 +22,6 @@ public class Mod : ModBase, IExports
     public const string NAME = "Ryo";
 
     private readonly IModLoader modLoader;
-    private readonly IReloadedHooks hooks;
     private readonly ILogger log;
     private readonly IMod owner;
 
@@ -47,7 +47,6 @@ public class Mod : ModBase, IExports
     public Mod(ModContext context)
     {
         this.modLoader = context.ModLoader;
-        this.hooks = context.Hooks!;
         this.log = context.Logger;
         this.owner = context.Owner;
         this.config = context.Configuration;
@@ -62,7 +61,6 @@ public class Mod : ModBase, IExports
         Project.Initialize(this.modConfig, this.modLoader, this.log, Color.FromArgb(110, 209, 248), true);
         Log.LogLevel = this.config.LogLevel;
 
-        this.modLoader.GetController<IStartupScanner>().TryGetTarget(out var scanner);
         this.modLoader.GetController<ISharedScans>().TryGetTarget(out var scans);
 
         this.criAtomEx = new(this.game, scans!);
@@ -84,28 +82,18 @@ public class Mod : ModBase, IExports
         this.modLoader.AddOrReplaceController<IRyoApi>(this.owner, this.ryoApi);
 
         this.modLoader.ModLoading += this.OnModLoading;
-        this.modLoader.OnModLoaderInitialized += this.OnModLoaderInitialized;
 
         this.ApplyConfig();
     }
 
-    private void OnModLoaderInitialized()
+    private void OnModLoading(IModV1 newMod, IModConfigV1 newModConfig)
     {
-        if (this.config.PreloadAudio)
-        {
-            Log.Information("Preloading audio.");
-            this.audioRegistry.PreloadAudio();
-        }
-    }
-
-    private void OnModLoading(IModV1 mod, IModConfigV1 config)
-    {
-        if (!config.ModDependencies.Contains(this.modConfig.ModId))
+        if (!newModConfig.ModDependencies.Contains(this.modConfig.ModId))
         {
             return;
         }
 
-        var modDir = this.modLoader.GetDirectoryForModId(config.ModId);
+        var modDir = this.modLoader.GetDirectoryForModId(newModConfig.ModId);
         var ryoDir = Path.Join(modDir, "ryo", this.game);
         if (Directory.Exists(ryoDir))
         {
@@ -120,6 +108,7 @@ public class Mod : ModBase, IExports
         this.criAtomEx.SetDevMode(this.config.DevMode);
         this.audioService.SetDevMode(this.config.DevMode);
         this.movieService.SetDevMode(this.config.DevMode);
+        this.criHooks.SetConfig(this.config);
     }
 
     #region Standard Overrides
@@ -132,7 +121,7 @@ public class Mod : ModBase, IExports
         this.ApplyConfig();
     }
 
-    public Type[] GetTypes() => new[] { typeof(ICriAtomEx), typeof(IRyoApi), typeof(ICriAtomRegistry) };
+    public Type[] GetTypes() => [typeof(ICriAtomEx), typeof(IRyoApi), typeof(ICriAtomRegistry)];
 
     #endregion
 
