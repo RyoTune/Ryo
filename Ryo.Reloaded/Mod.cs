@@ -57,6 +57,7 @@ public class Mod : ModBase, IExports
 #endif
 
         this.game = Path.GetFileNameWithoutExtension(this.modLoader.GetAppConfig().AppId);
+        Log.Debug($"Game: {game}");
 
         Project.Initialize(this.modConfig, this.modLoader, this.log, Color.FromArgb(110, 209, 248), true);
         Log.LogLevel = this.config.LogLevel;
