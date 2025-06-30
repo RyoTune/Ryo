@@ -89,7 +89,7 @@ public class Mod : ModBase, IExports
 
     private void OnModLoading(IModV1 newMod, IModConfigV1 newModConfig)
     {
-        if (!Project.IsModDependent(modConfig)) return;
+        if (!Project.IsModDependent(newModConfig)) return;
 
         var modDir = this.modLoader.GetDirectoryForModId(newModConfig.ModId);
         var ryoDir = Path.Join(modDir, "ryo", this.game);
