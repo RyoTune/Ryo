@@ -41,7 +41,7 @@ internal class MovieService
             try
             {
                 var movieFile = movie.GetMoviePath();
-                var movieFilePtr = StringsCache.GetStringPtr(movieFile);
+                var movieFilePtr = movieFile.AsPointerAnsi(true);
                 this.setFile.Hook!.OriginalFunction(player, binder, movieFilePtr);
                 Log.Debug($"Redirected movie file.\nOriginal: {file}\nNew: {movieFile}");
             }

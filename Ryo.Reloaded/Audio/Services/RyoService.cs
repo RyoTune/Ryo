@@ -42,7 +42,7 @@ internal unsafe class RyoService
 
         if (this.setFileSupported)
         {
-            this.criAtomEx.Player_SetFile(currentPlayer.Handle, IntPtr.Zero, (byte*)StringsCache.GetStringPtr(newAudio.FilePath));
+            this.criAtomEx.Player_SetFile(currentPlayer.Handle, IntPtr.Zero, (byte*)newAudio.FilePath.AsPointerAnsi(true));
         }
         else if (this.setDataSupported)
         {

@@ -29,7 +29,7 @@ internal unsafe class VirtualAcfService
             {
                 group_no = 0,
                 id = 69,
-                name = StringsCache.GetStringPtr("69420lmao"),
+                name = "69420lmao".AsPointerAnsi(true),
                 num_cue_limits = uint.MaxValue,
                 volume = 0.05f
             };

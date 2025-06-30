@@ -38,7 +38,7 @@ internal unsafe class VirtualCueService
             // cue info as a shell.
             _ = int.TryParse(cue, out int id);
             info->id = id;
-            info->name = StringsCache.GetStringPtr(cue);
+            info->name = cue.AsPointerAnsi(true);
             info->categories[0] = -1;
             Log.Debug($"{nameof(GetCueInfoByRyo)} || Virtual Cue: {cue} / {acb}");
             return true;
@@ -62,7 +62,7 @@ internal unsafe class VirtualCueService
             if (name != linkedCueName)
             {
                 Log.Debug($"LinkCueCb: {name} -> {linkedCueName}");
-                linkedCueStr = StringsCache.GetStringPtr(linkedCueName);
+                linkedCueStr = linkedCueName.AsPointerAnsi(true);
             }
         }
 
