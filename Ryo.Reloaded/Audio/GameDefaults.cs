@@ -135,6 +135,7 @@ internal static class GameDefaults
                 {
                     maxPathStrings = 10,
                     voiceAllocationMethod = 1,
+                    maxPath = 256,
                 });
                 break;
             default: break;
