@@ -131,10 +131,6 @@ internal static class GameDefaults
                 });
                 break;
             case "p3p":
-                criAtomEx.SetPlayerConfigById(1, new()
-                {
-                    voiceAllocationMethod = 1,
-                });
                 criAtomEx.SetPlayerConfigById(2, new()
                 {
                     maxPathStrings = 10,
