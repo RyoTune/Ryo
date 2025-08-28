@@ -1,6 +1,7 @@
 ﻿using Ryo.Definitions.Structs;
 using Ryo.Interfaces;
 using System.Collections.Concurrent;
+using System.Runtime.InteropServices;
 
 namespace Ryo.Reloaded.CRI.CriAtomEx;
 
@@ -21,7 +22,9 @@ internal class CriAtomRegistry : ICriAtomRegistry
 
     public unsafe static Acb RegisterAcb(AcbHn* acbHn)
     {
-        var acb = new Acb(acbHn->GetAcbName(), (nint)acbHn);
+        var namePtr = *(nint*)((nint)acbHn->acb + CriWareConfig.AcbNameOffset);
+        var name = Marshal.PtrToStringAnsi(namePtr)!;
+        var acb = new Acb(name, (nint)acbHn);
         acbs[acb.Handle] = acb;
         Log.Debug($"Registered ACB || Name: {acb.Name} || Handle: {acb.Handle:X}");
         return acb;
