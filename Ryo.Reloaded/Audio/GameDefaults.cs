@@ -100,12 +100,21 @@ internal static class GameDefaults
 
     public static AudioConfig CreateDefaultConfig(string game)
     {
-        if (defaults.TryGetValue(game, out var defaultConfig))
+        if (defaults.TryGetValue(game, out var existingConfig))
         {
-            return defaultConfig.Clone();
+            return existingConfig.Clone();
         }
 
-        return new();
+        var defaultConfig = new AudioConfig();
+        
+        // TODO: Ideally use reflection to try getting a setting for every property.
+        // There should be a TryGetSetting taking the type is param instead of generic.
+        if (Project.Inis.TryGetSetting<float>("default-audio-config", "Volume", out var volume))
+        {
+            defaultConfig.Volume = volume;
+        }
+
+        return defaultConfig;
     }
 
     public static void ConfigureCriAtom(string game, ICriAtomEx criAtomEx)
