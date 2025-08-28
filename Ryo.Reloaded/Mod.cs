@@ -13,6 +13,8 @@ using Ryo.Reloaded.Movies;
 using Ryo.Reloaded.Template;
 using SharedScans.Interfaces;
 using System.Drawing;
+using System.Runtime.InteropServices;
+using Ryo.Reloaded.CRI;
 using Ryo.Reloaded.CRI.CriWare;
 
 namespace Ryo.Reloaded;
@@ -81,6 +83,18 @@ public class Mod : ModBase, IExports
 
         this.ryoApi = new(this.criAtomRegistry, this.audioRegistry, this.preprocessor, this.movieRegistry);
         this.modLoader.AddOrReplaceController<IRyoApi>(this.owner, this.ryoApi);
+
+        Project.Scans.AddScan("'CRI File System/PC' String", "43 52 49 20 46 69 6C 65 20 53 79 73 74 65 6D 2F 50 43", result =>
+        {
+            var criBuild = Marshal.PtrToStringAnsi(result)!.TrimEnd('\n');
+            Log.Debug($"CriWare Build: {criBuild}");
+
+            var startOfs = criBuild.IndexOf("Ver.", StringComparison.Ordinal) + 4;
+            var endOfs = criBuild.IndexOf("Build", StringComparison.Ordinal) - 1;
+            var criVersion = criBuild.Substring(startOfs, endOfs - startOfs);
+            
+            CriWareConfig.SetVersion(new(criVersion));
+        });
 
         this.modLoader.ModLoading += this.OnModLoading;
 
