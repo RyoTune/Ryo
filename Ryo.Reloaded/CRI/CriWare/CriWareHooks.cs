@@ -28,7 +28,8 @@ public unsafe class CriWareHooks
         // Remove encryption key from output if source is unencrypted (checks for readable HCA sig).
         if (_encryptedHcaEnabled && hcaSrc->Signature == 0x414348)
         {
-            hcaOut->EncryptionKey = 0;
+            *(nint*)((nint)hcaOut + CriWareConfig.HcaDecodedEncryptKeyOffset) = 0; 
+                
             Log.Verbose("Removed encryption before HCA playback.");
         }
         
