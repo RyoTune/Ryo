@@ -31,12 +31,6 @@
     <None Remove="BuildLinked.ps1" />
     <None Remove="Reloaded.Trimming.targets" />
     <None Remove="Reloaded.Checks.targets" />
-    <None Update="Project\SharedScans.Reloaded\SonicRacingCrossWorldsSteam\scans.ini">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="Project\Ryo.Reloaded\SonicRacingCrossWorldsSteam\default-audio-config.ini">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 
   <ItemGroup>
