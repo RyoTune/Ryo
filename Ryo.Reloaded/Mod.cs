@@ -99,7 +99,7 @@ public unsafe class Mod : ModBase, IExports
         Project.Scans.AddScan("HCADecoder_SetDecryptionTable" ,"48 85 C9 75 ?? 8D 41 ?? C3 48 85 D2 74 1D", result =>
         {
             var tableFieldOfs = (int*)(result + 0x2B + 0x3);
-            Log.Debug($"HCA Decryption Table Field Offset: 0x{(nint)tableFieldOfs:X}");
+            Log.Debug($"HCA Decryption Table Field Offset: 0x{*tableFieldOfs:X}");
             CriWareConfig.HcaDecodedEncryptKeyOffset = *tableFieldOfs;
         }, () => Log.Information("Failed to find 'HCADecoder_SetDecryptionTable'. Unencrypted HCA in encrypted games is unsupported."));
 
