@@ -1,0 +1,3 @@
+[submodule "submodules/RyoTune.Reloaded"]
+	path = submodules/RyoTune.Reloaded
+	url = https://github.com/RyoTune/RyoTune.Reloaded.git
