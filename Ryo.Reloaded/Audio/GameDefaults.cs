@@ -5,7 +5,7 @@ namespace Ryo.Reloaded.Audio;
 
 internal static class GameDefaults
 {
-    private static readonly Dictionary<string, Func<AcbCueInfo, string>> linkCueCallback = new(StringComparer.OrdinalIgnoreCase)
+    private static readonly Dictionary<string, Func<AcbCueInfo, string>> LinkCueCallback = new(StringComparer.OrdinalIgnoreCase)
     {
         ["p5r"] = (AcbCueInfo info) =>
         {
@@ -47,11 +47,11 @@ internal static class GameDefaults
 
     public static Func<AcbCueInfo, string>? GetLinkCueCb(string game)
     {
-        linkCueCallback.TryGetValue(game, out var cb);
+        LinkCueCallback.TryGetValue(game, out var cb);
         return cb;
     }
 
-    private static readonly Dictionary<string, AudioConfig> defaults = new(StringComparer.OrdinalIgnoreCase)
+    private static readonly Dictionary<string, AudioConfig> Defaults = new(StringComparer.OrdinalIgnoreCase)
     {
         ["p5r"] = new()
         {
@@ -65,6 +65,7 @@ internal static class GameDefaults
         {
             AcbName = "bgm",
             Volume = 0.15f,
+            TemplateCueId = 600001,
         },
         ["SMT5V-Win64-Shipping"] = new()
         {
@@ -100,7 +101,7 @@ internal static class GameDefaults
 
     public static AudioConfig CreateDefaultConfig(string game)
     {
-        if (defaults.TryGetValue(game, out var existingConfig))
+        if (Defaults.TryGetValue(game, out var existingConfig))
         {
             return existingConfig.Clone();
         }
@@ -150,7 +151,6 @@ internal static class GameDefaults
                     maxPath = 256,
                 });
                 break;
-            default: break;
         }
     }
 }
