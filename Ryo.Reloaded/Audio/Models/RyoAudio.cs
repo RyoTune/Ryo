@@ -21,7 +21,7 @@ internal class RyoAudio
 
     public int NumChannels => this.config.NumChannels ?? 2;
 
-    public float Volume => this.config.Volume ?? -1f;
+    public float Volume => this.config.RyoClassicVolume ?? -1f;
 
     public string? Key => this.config.Key ?? null;
 
