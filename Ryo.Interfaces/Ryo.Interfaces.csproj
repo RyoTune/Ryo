@@ -7,6 +7,7 @@
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
 	<GenerateDocumentationFile>true</GenerateDocumentationFile>
     <Version>2.5.0</Version>
+    <LangVersion>preview</LangVersion>
 	<Authors>RyoTune</Authors>
 	<Description>Ryo Framework adds the ability to add or replace game audio and movies with zero file editing.</Description>
 	<RepositoryUrl>https://github.com/RyoTune/Ryo</RepositoryUrl>

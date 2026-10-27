@@ -2,6 +2,8 @@
 using Ryo.Definitions.Functions;
 using Ryo.Interfaces.Enums;
 
+// ReSharper disable MemberCanBePrivate.Global
+
 namespace Ryo.Interfaces.Classes;
 
 /// <summary>
@@ -9,10 +11,16 @@ namespace Ryo.Interfaces.Classes;
 /// </summary>
 public class AudioConfig
 {
+    #region General Settings
+
+    /// <summary>
+    /// Version of this audio config.
+    /// </summary>
+    public int Version { get; set; } = 2;
+    
     /// <summary>
     /// Gets or sets the container group.
-    /// Settings this allows for the container to be retrieved
-    /// as part of a group of containers.
+    /// Allows for the container to be retrieved as part of a group.
     /// </summary>
     public string? GroupId { get; set; }
 
@@ -29,8 +37,29 @@ public class AudioConfig
     public string? SharedContainerId { get; set; }
 
     /// <summary>
-    /// Cue name this audio is assigned to. Can be a new or existing cue.
-    /// Used when replacing audio played with <see cref="CriAtomExFunctions.criAtomExPlayer_SetCueId"/> and <see cref="CriAtomExFunctions.criAtomExPlayer_SetCueName"/> .
+    /// Custom volume to set for the audio.
+    /// Ryo 3+: The volume is set on the cue or player.
+    /// Ryo Classic: The volume is set either on a sound category or the player itself.
+    /// </summary>
+    public float? Volume { get; set; }
+
+    /// <summary>
+    /// Represents the volume level specific to the Ryo Classic audio configuration.
+    /// </summary>
+    public float? RyoClassicVolume { get; set; }
+
+    /// <summary>
+    /// Custom playback modes when audio contains multiple files.
+    /// </summary>
+    public PlaybackMode? PlaybackMode { get; set; }
+
+    #endregion
+
+    #region Cue Settings
+    
+    /// <summary>
+    /// The cue name or ID this audio is assigned to. Can be a new or existing cue.<br/>
+    /// Ryo Classic: Used when replacing audio played with <see cref="CriAtomExFunctions.criAtomExPlayer_SetCueId"/> and <see cref="CriAtomExFunctions.criAtomExPlayer_SetCueName"/> .
     /// </summary>
     public string? CueName { get; set; }
 
@@ -39,6 +68,28 @@ public class AudioConfig
     /// Used when replacing audio played with <see cref="CriAtomExFunctions.criAtomExPlayer_SetCueId"/> and <see cref="CriAtomExFunctions.criAtomExPlayer_SetCueName"/> .
     /// </summary>
     public string? AcbName { get; set; }
+
+    /// <summary>
+    /// Name of cue to use as a template.
+    /// </summary>
+    public string? TemplateCueName { get; set; }
+
+    /// <summary>
+    /// ID of cue to use as a template.
+    /// </summary>
+    public int? TemplateCueId { get; set; }
+    
+    /// <summary>
+    /// Sound categories to apply to cue.
+    /// </summary>
+    public int[]? CategoryIds { get; set; }
+
+    /// <summary>
+    /// Sound categories to apply to cue.
+    /// </summary>
+    public string[]? CategoryNames { get; set; }
+    
+    #endregion
 
     /// <summary>
     /// The audio hash this audio is assigned to.
@@ -53,32 +104,34 @@ public class AudioConfig
     public string? AudioFilePath { get; set; }
 
     /// <summary>
-    /// Sample rate of audio.
-    /// Seems to be ignored if audio format includes this data, such as HCA and ADX.
+    /// Ryo Classic: Set a custom volume on the player instead of a category.
     /// </summary>
-    public int? SampleRate { get; set; }
+    public bool? UsePlayerVolume { get; set; }
 
-    /// <summary/>
-    public CriAtomFormat? Format { get; set; }
-
-    /// <summary/>
-    public int? NumChannels { get; set; }
+    #region Ryo Classic
 
     /// <summary>
     /// Specific player to play this audio with.
     /// </summary>
     public int? PlayerId { get; set; }
+    
+    /// <summary>
+    /// Category ID to set custom volume on.
+    /// If not set, or category is not found in <c>CategoryIds</c>, the first category will be used.
+    /// </summary>
+    public int? VolumeCategoryId { get; set; }
+
+    /// <summary/>
+    public CriAtomFormat? Format { get; set; }
 
     /// <summary>
-    /// Sound categories to apply to player before playing.
+    /// Sample rate of audio.
+    /// Seems to be ignored if an audio format includes this data, such as HCA and ADX.
     /// </summary>
-    public int[]? CategoryIds { get; set; }
+    public int? SampleRate { get; set; }
 
-    /// <summary>
-    /// Custom volume to set before playing audio.
-    /// The volume is set either on a sound category or the player itself.
-    /// </summary>
-    public float? Volume { get; set; }
+    /// <summary/>
+    public int? NumChannels { get; set; }
 
     /// <summary/>
     public string? Key { get; set; }
@@ -86,24 +139,13 @@ public class AudioConfig
     /// <summary/>
     public string[]? Tags { get; set; }
 
-    /// <summary>
-    /// Custom playback modes when audio contains multiple files.
-    /// </summary>
-    public PlaybackMode? PlaybackMode { get; set; }
+    #endregion
 
     /// <summary>
-    /// Set custom volume on the player instead of category.
+    /// Creates a shallow copy of this audio config.
     /// </summary>
-    public bool? UsePlayerVolume { get; set; }
-
-    /// <summary>
-    /// Category ID to set custom volume on.
-    /// If not set, or category is not found in <c>CategoryIds</c>, the first category will be used.
-    /// </summary>
-    public int? VolumeCategoryId { get; set; }
-
-    /// <inheritdoc/>
-    public AudioConfig Clone() => (AudioConfig)this.MemberwiseClone();
+    /// <returns></returns>
+    public AudioConfig Clone() => (AudioConfig)MemberwiseClone();
 
     /// <summary>
     /// Applies defined settings from <paramref name="newConfig"/>.
@@ -111,22 +153,47 @@ public class AudioConfig
     /// <param name="newConfig">Config containing the settings to apply.</param>
     public void Apply(AudioConfig newConfig)
     {
-        this.GroupId = newConfig.GroupId ?? this.GroupId;
-        this.IsEnabled = newConfig.IsEnabled ?? this.IsEnabled;
-        this.CueName = newConfig.CueName ?? this.CueName;
-        this.AcbName = newConfig.AcbName ?? this.AcbName;
-        this.PlayerId = newConfig.PlayerId ?? this.PlayerId;
-        this.CategoryIds = newConfig.CategoryIds ?? this.CategoryIds;
-        this.NumChannels = newConfig.NumChannels ?? this.NumChannels;
-        this.SampleRate = newConfig.SampleRate ?? this.SampleRate;
-        this.Volume = newConfig.Volume ?? this.Volume;
-        this.Tags = newConfig.Tags ?? this.Tags;
-        this.Key = newConfig.Key ?? this.Key;
-        this.SharedContainerId = newConfig.SharedContainerId ?? this.SharedContainerId;
-        this.AudioHash = newConfig.AudioHash ?? this.AudioHash;
-        this.AudioFilePath = newConfig.AudioFilePath ?? this.AudioFilePath;
-        this.PlaybackMode = newConfig.PlaybackMode ?? this.PlaybackMode;
-        this.UsePlayerVolume = newConfig.UsePlayerVolume ?? this.UsePlayerVolume;
-        this.VolumeCategoryId = newConfig.VolumeCategoryId ?? this.VolumeCategoryId;
+        // General
+        GroupId = newConfig.GroupId ?? GroupId;
+        IsEnabled = newConfig.IsEnabled ?? IsEnabled;
+        SharedContainerId = newConfig.SharedContainerId ?? SharedContainerId;
+        Volume = newConfig.Volume ?? Volume;
+        UsePlayerVolume = newConfig.UsePlayerVolume ?? UsePlayerVolume;
+        PlaybackMode = newConfig.PlaybackMode ?? PlaybackMode;
+        
+        // Cues
+        CueName = newConfig.CueName ?? CueName;
+        AcbName = newConfig.AcbName ?? AcbName;
+        CategoryIds = newConfig.CategoryIds ?? CategoryIds;
+        TemplateCueName = newConfig.TemplateCueName ?? TemplateCueName;
+        TemplateCueId = newConfig.TemplateCueId ?? TemplateCueId;
+        Volume = newConfig.Volume ?? Volume;
+        CategoryIds = newConfig.CategoryIds ?? CategoryIds;
+        CategoryNames = newConfig.CategoryNames ?? CategoryNames;
+        
+        // SetFile/SetData
+        AudioHash = newConfig.AudioHash ?? AudioHash;
+        AudioFilePath = newConfig.AudioFilePath ?? AudioFilePath;
+        
+        // Deprecated/Unknown
+        PlayerId = newConfig.PlayerId ?? PlayerId;
+        VolumeCategoryId = newConfig.VolumeCategoryId ?? VolumeCategoryId;
+        NumChannels = newConfig.NumChannels ?? NumChannels;
+        SampleRate = newConfig.SampleRate ?? SampleRate;
+        Tags = newConfig.Tags ?? Tags;
+        Key = newConfig.Key ?? Key;
+    }
+
+    /// <summary>
+    /// Migrates this audio config to the latest version.
+    /// </summary>
+    public void Migrate()
+    {
+        if (Version < 3)
+        {
+            RyoClassicVolume = Volume;
+            Volume = null;
+            Version = 3;
+        }
     }
 }
