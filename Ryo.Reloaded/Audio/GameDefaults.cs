@@ -108,12 +108,12 @@ internal static class GameDefaults
 
         var defaultConfig = new AudioConfig();
         
-        Project.Inis.UsingSetting<float>("default-audio-config", "Volume", null, value =>
+        Project.Settings.UsingSetting<float>("default-audio-config", "Volume", null, value =>
         {
             defaultConfig.Volume = value;
         });
         
-        Project.Inis.UsingSetting<bool>("default-audio-config", "UsePlayerVolume", null, value =>
+        Project.Settings.UsingSetting<bool>("default-audio-config", "UsePlayerVolume", null, value =>
         {
             defaultConfig.UsePlayerVolume = value;
         });

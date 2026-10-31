@@ -45,11 +45,11 @@ internal class FMallocBinned2 : IFMalloc
         _ptr = ptr;
         _hooks = hooks;
         
-        Project.Inis.UsingSetting<uint>("unreal", nameof(Malloc), nameof(FMallocBinned2), value => _mallocOffset = value);
-        Project.Inis.UsingSetting<uint>(UnrealAllocator.UnrealIniId, nameof(Realloc), nameof(FMallocBinned2), value => _reallocOffset = value);
-        Project.Inis.UsingSetting<uint>(UnrealAllocator.UnrealIniId, nameof(Free), nameof(FMallocBinned2), value => _freeOffset = value);
-        Project.Inis.UsingSetting<uint>(UnrealAllocator.UnrealIniId, nameof(GetAllocSize), nameof(FMallocBinned2), value => _getAllocSizeOffset = value);
-        Project.Inis.UsingSetting<uint>(UnrealAllocator.UnrealIniId, nameof(QuantizeSize), nameof(FMallocBinned2), value => _quantizeSizeOffset = value);
+        Project.Settings.UsingSetting<uint>("unreal", nameof(Malloc), nameof(FMallocBinned2), value => _mallocOffset = value);
+        Project.Settings.UsingSetting<uint>(UnrealAllocator.UnrealIniId, nameof(Realloc), nameof(FMallocBinned2), value => _reallocOffset = value);
+        Project.Settings.UsingSetting<uint>(UnrealAllocator.UnrealIniId, nameof(Free), nameof(FMallocBinned2), value => _freeOffset = value);
+        Project.Settings.UsingSetting<uint>(UnrealAllocator.UnrealIniId, nameof(GetAllocSize), nameof(FMallocBinned2), value => _getAllocSizeOffset = value);
+        Project.Settings.UsingSetting<uint>(UnrealAllocator.UnrealIniId, nameof(QuantizeSize), nameof(FMallocBinned2), value => _quantizeSizeOffset = value);
     }
 
     public unsafe void Free(nint original)
