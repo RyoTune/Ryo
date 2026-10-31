@@ -2,7 +2,7 @@
   "ModId": "Ryo.Reloaded",
   "ModName": "Ryo Framework",
   "ModAuthor": "RyoTune",
-  "ModVersion": "2.11.5",
+  "ModVersion": "3.0.0",
   "ModDescription": "Ryo Framework adds the ability to add or replace game audio and movies with zero file editing.",
   "ModDll": "Ryo.Reloaded.dll",
   "ModIcon": "Preview.png",
@@ -44,6 +44,15 @@
             "AssetFileName": "Mod.zip"
           },
           "ReleaseMetadataName": "SharedScans.Reloaded.ReleaseMetadata.json"
+        },
+        "RyoTune.Reloaded.Serialization.Yaml": {
+          "Config": {
+            "UserName": "RyoTune",
+            "RepositoryName": "RyoTune.Reloaded.Serialization.Yaml",
+            "UseReleaseTag": false,
+            "AssetFileName": "Mod.zip"
+          },
+          "ReleaseMetadataName": "RyoTune.Reloaded.Serialization.Yaml.ReleaseMetadata.json"
         }
       }
     },
@@ -58,7 +67,8 @@
   "ModDependencies": [
     "Reloaded.Memory.SigScan.ReloadedII",
     "reloaded.sharedlib.hooks",
-    "SharedScans.Reloaded"
+    "SharedScans.Reloaded",
+    "RyoTune.Reloaded.Serialization.Yaml"
   ],
   "OptionalDependencies": [],
   "SupportedAppId": [
@@ -74,7 +84,10 @@
     "jujutsu kaisen cc.exe",
     "raincodeplus-win64-shipping.exe",
     "metaphor.exe",
-    "sparkingzero-win64-shipping.exe"
+    "sparkingzero-win64-shipping.exe",
+    "sonicracingcrossworldssteam.exe"
   ],
-  "ProjectUrl": ""
+  "ProjectUrl": "",
+  "CreatorUrl": "",
+  "IsSeparator": false
 }
