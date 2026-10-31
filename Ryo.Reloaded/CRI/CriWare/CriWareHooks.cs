@@ -18,7 +18,7 @@ public unsafe class CriWareHooks
         var patterns = CriWarePatterns.GetGamePatterns(game);
         
         scans.AddScan<HCADecoder_DecodeHeader>(patterns.HCADecoder_DecodeHeader);
-        _hcaDecodeHeader = scans.CreateHook<HCADecoder_DecodeHeader>(HcaDecodeHeader, Mod.NAME);
+        _hcaDecodeHeader = scans.CreateHook<HCADecoder_DecodeHeader>(HcaDecodeHeader, Mod.Name);
     }
 
     public void SetConfig(Config config) => _encryptedHcaEnabled = config.UnencryptedHcaEnabled;

@@ -20,7 +20,7 @@ public class MultiSignature<TFunction>
         this.Signatures = Signatures;
         // Check for a single pattern defined inside a Scan INI
         scans.AddScan(typeof(TFunction).Name, null);
-        Function = scans.CreateWrapper<TFunction>(Mod.NAME);
+        Function = scans.CreateWrapper<TFunction>(Mod.Name);
         
         // Check for multiple signature candidates defined in code
         foreach (var (Index, Candidate) in this.Signatures.Select((x, i) => (i, x)))

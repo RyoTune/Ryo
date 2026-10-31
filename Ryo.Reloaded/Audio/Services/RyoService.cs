@@ -30,7 +30,7 @@ internal unsafe class RyoService
         scans.CreateListener<criAtomExPlayer_SetData>(_ => setDataSupported = true);
         scans.CreateListener<criAtomExPlayer_ResetParameters>(_ => resetParamsSupported = true);
         
-        this.setVolume = scans.CreateHook<criAtomExPlayer_SetVolume>(this.CriAtomExPlayer_SetVolume, Mod.NAME);
+        this.setVolume = scans.CreateHook<criAtomExPlayer_SetVolume>(this.CriAtomExPlayer_SetVolume, Mod.Name);
     }
 
     public void SetAudio(Player player, AudioContainer container, int[]? categories)

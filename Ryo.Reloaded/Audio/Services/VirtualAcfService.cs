@@ -11,8 +11,8 @@ internal unsafe class VirtualAcfService
 
     public VirtualAcfService(ISharedScans scans)
     {
-        this.getCategoryIndexById = scans.CreateHook<criAtomConfig_GetCategoryIndexById>(this.CriAtomExAcf_GetCategoryIndexById, Mod.NAME);
-        this.getCategoryInfoByIndex = scans.CreateHook<criAtomExAcf_GetCategoryInfoByIndex>(this.CriAtomExAcf_GetCategoryInfoByIndex, Mod.NAME);
+        this.getCategoryIndexById = scans.CreateHook<criAtomConfig_GetCategoryIndexById>(this.CriAtomExAcf_GetCategoryIndexById, Mod.Name);
+        this.getCategoryInfoByIndex = scans.CreateHook<criAtomExAcf_GetCategoryInfoByIndex>(this.CriAtomExAcf_GetCategoryInfoByIndex, Mod.Name);
     }
 
     private bool CriAtomExAcf_GetCategoryInfoByIndex(ushort index, CriAtomExCategoryInfoTag* info)

@@ -25,8 +25,8 @@ internal unsafe class VirtualCueService
         this.criAtomRegistry = criAtomRegistry;
         this.audioRegistry = audioRegistry;
 
-        this.getCueInfoById = scans.CreateHook<criAtomExAcb_GetCueInfoById>(this.CriAtomExAcb_GetCueInfoById, Mod.NAME);
-        this.getCueInfoByName = scans.CreateHook<criAtomExAcb_GetCueInfoByName>(this.CriAtomExAcb_GetCueInfoByName, Mod.NAME);
+        this.getCueInfoById = scans.CreateHook<criAtomExAcb_GetCueInfoById>(this.CriAtomExAcb_GetCueInfoById, Mod.Name);
+        this.getCueInfoByName = scans.CreateHook<criAtomExAcb_GetCueInfoByName>(this.CriAtomExAcb_GetCueInfoByName, Mod.Name);
     }
 
     private bool GetCueInfoByRyo(string acb, string cue, CriAtomExCueInfoTag* info)

@@ -69,109 +69,109 @@ internal unsafe class CriAtomEx : ICriAtomEx
         
 
         scans.AddScan<criAtomExPlayer_SetCueId>(this.patterns.criAtomExPlayer_SetCueId);
-        this.setCueId = scans.CreateWrapper<criAtomExPlayer_SetCueId>(Mod.NAME);
+        this.setCueId = scans.CreateWrapper<criAtomExPlayer_SetCueId>(Mod.Name);
 
         scans.AddScan<criAtomExPlayer_SetCueName>(this.patterns.criAtomExPlayer_SetCueName);
-        this.setCueName = scans.CreateWrapper<criAtomExPlayer_SetCueName>(Mod.NAME);
+        this.setCueName = scans.CreateWrapper<criAtomExPlayer_SetCueName>(Mod.Name);
 
         scans.AddScan<criAtomExPlayer_Start>(this.patterns.criAtomExPlayer_Start);
-        this.start = scans.CreateWrapper<criAtomExPlayer_Start>(Mod.NAME);
+        this.start = scans.CreateWrapper<criAtomExPlayer_Start>(Mod.Name);
 
         scans.AddScan<criAtomExPlayer_SetFile>(this.patterns.criAtomExPlayer_SetFile);
-        this.setFile = scans.CreateWrapper<criAtomExPlayer_SetFile>(Mod.NAME);
+        this.setFile = scans.CreateWrapper<criAtomExPlayer_SetFile>(Mod.Name);
 
         scans.AddScan<criAtomExPlayer_SetWaveId>(this.patterns.criAtomExPlayer_SetWaveId);
-        this.setWaveId = scans.CreateWrapper<criAtomExPlayer_SetWaveId>(Mod.NAME);
+        this.setWaveId = scans.CreateWrapper<criAtomExPlayer_SetWaveId>(Mod.Name);
 
         scans.AddScan<criAtomExPlayer_SetData>(this.patterns.criAtomExPlayer_SetData);
-        this.setData = scans.CreateWrapper<criAtomExPlayer_SetData>(Mod.NAME);
+        this.setData = scans.CreateWrapper<criAtomExPlayer_SetData>(Mod.Name);
 
         scans.AddScan<criAtomExAcb_GetCueInfoById>(this.patterns.criAtomExAcb_GetCueInfoById);
-        this.getCueInfoById = scans.CreateWrapper<criAtomExAcb_GetCueInfoById>(Mod.NAME);
+        this.getCueInfoById = scans.CreateWrapper<criAtomExAcb_GetCueInfoById>(Mod.Name);
 
         scans.AddScan<criAtomExAcb_GetCueInfoByName>(this.patterns.criAtomExAcb_GetCueInfoByName);
-        this.getCueInfoByName = scans.CreateWrapper<criAtomExAcb_GetCueInfoByName>(Mod.NAME);
+        this.getCueInfoByName = scans.CreateWrapper<criAtomExAcb_GetCueInfoByName>(Mod.Name);
 
         scans.AddScan<criAtomConfig_GetCategoryIndexById>(this.patterns.criAtomConfig_GetCategoryIndexById);
-        this.getCategoryIndex = scans.CreateWrapper<criAtomConfig_GetCategoryIndexById>(Mod.NAME);
+        this.getCategoryIndex = scans.CreateWrapper<criAtomConfig_GetCategoryIndexById>(Mod.Name);
 
         scans.AddScan<criAtomExPlayer_SetStartTime>(this.patterns.criAtomExPlayer_SetStartTime);
-        this.setStartTime = scans.CreateWrapper<criAtomExPlayer_SetStartTime>(Mod.NAME);
+        this.setStartTime = scans.CreateWrapper<criAtomExPlayer_SetStartTime>(Mod.Name);
 
         scans.AddScan<criAtomExPlayback_GetTimeSyncedWithAudioMicro>(this.patterns.criAtomExPlayback_GetTimeSyncedWithAudioMicro);
-        this.getTimeSyncedWithAudioMicro = scans.CreateWrapper<criAtomExPlayback_GetTimeSyncedWithAudioMicro>(Mod.NAME);
+        this.getTimeSyncedWithAudioMicro = scans.CreateWrapper<criAtomExPlayback_GetTimeSyncedWithAudioMicro>(Mod.Name);
 
         scans.AddScan<criAtomExPlayer_GetStatus>(this.patterns.criAtomExPlayer_GetStatus);
-        this.getStatus = scans.CreateWrapper<criAtomExPlayer_GetStatus>(Mod.NAME);
+        this.getStatus = scans.CreateWrapper<criAtomExPlayer_GetStatus>(Mod.Name);
 
         scans.AddScan<criAtomExPlayer_ResetParameters>(this.patterns.criAtomExPlayer_ResetParameters);
-        this.resetParameters = scans.CreateWrapper<criAtomExPlayer_ResetParameters>(Mod.NAME);
+        this.resetParameters = scans.CreateWrapper<criAtomExPlayer_ResetParameters>(Mod.Name);
 
         scans.AddScan<criAtomExAcf_GetCategoryInfoByIndex>(this.patterns.criAtomExAcf_GetCategoryInfoByIndex);
-        this.acfGetCategoryInfoById = scans.CreateWrapper<criAtomExAcf_GetCategoryInfoByIndex>(Mod.NAME);
+        this.acfGetCategoryInfoById = scans.CreateWrapper<criAtomExAcf_GetCategoryInfoByIndex>(Mod.Name);
 
         scans.AddScan<criAtomExCategory_GetVolume>(this.patterns.criAtomExCategory_GetVolume);
-        this.getCategoryVolume = scans.CreateWrapper<criAtomExCategory_GetVolume>(Mod.NAME);
+        this.getCategoryVolume = scans.CreateWrapper<criAtomExCategory_GetVolume>(Mod.Name);
         
         scans.AddScan<criAtomExCategory_SetVolumeById>(this.patterns.criAtomExCategory_SetVolumeById);
-        this.setVolumeById = scans.CreateWrapper<criAtomExCategory_SetVolumeById>(Mod.NAME);
+        this.setVolumeById = scans.CreateWrapper<criAtomExCategory_SetVolumeById>(Mod.Name);
 
         scans.AddScan<criAtomExCategory_SetVolume>(this.patterns.criAtomExCategory_SetVolume);
-        this.setVolumeByIndex = scans.CreateWrapper<criAtomExCategory_SetVolume>(Mod.NAME);
+        this.setVolumeByIndex = scans.CreateWrapper<criAtomExCategory_SetVolume>(Mod.Name);
 
         scans.AddScan<criAtomExPlayer_Create>(this.patterns.criAtomExPlayer_Create);
-        this.create = scans.CreateHook<criAtomExPlayer_Create>(this.Player_Create, Mod.NAME);
+        this.create = scans.CreateHook<criAtomExPlayer_Create>(this.Player_Create, Mod.Name);
 
         scans.AddScan<criAtomExAcb_LoadAcbFile>(this.patterns.criAtomExAcb_LoadAcbFile);
-        this.loadAcbFile = scans.CreateHook<criAtomExAcb_LoadAcbFile>(this.Acb_LoadAcbFile, Mod.NAME);
+        this.loadAcbFile = scans.CreateHook<criAtomExAcb_LoadAcbFile>(this.Acb_LoadAcbFile, Mod.Name);
 
         scans.AddScan<criAtomAwb_LoadToc>(this.patterns.criAtomAwb_LoadToc);
         //scans.AddScan<criAtomAwb_LoadToc>(this.patterns.criAtomAwb_LoadTocAsync);
-        this.loadToc = scans.CreateHook<criAtomAwb_LoadToc>(this.Awb_LoadToc, Mod.NAME);
+        this.loadToc = scans.CreateHook<criAtomAwb_LoadToc>(this.Awb_LoadToc, Mod.Name);
 
         scans.AddScan<criAtomExAcb_LoadAcbData>(this.patterns.criAtomExAcb_LoadAcbData);
-        this.loadAcbData = scans.CreateHook<criAtomExAcb_LoadAcbData>(this.Acb_LoadAcbData, Mod.NAME);
+        this.loadAcbData = scans.CreateHook<criAtomExAcb_LoadAcbData>(this.Acb_LoadAcbData, Mod.Name);
 
         scans.AddScan<criAtomExCategory_GetVolumeById>(this.patterns.criAtomExCategory_GetVolumeById);
-        this.getVolumeById = scans.CreateWrapper<criAtomExCategory_GetVolumeById>(Mod.NAME);
+        this.getVolumeById = scans.CreateWrapper<criAtomExCategory_GetVolumeById>(Mod.Name);
 
         scans.AddScan<criAtomExPlayer_GetNumPlayedSamples>(this.patterns.criAtomExPlayer_GetNumPlayedSamples);
-        this.getNumPlayedSamples = scans.CreateWrapper<criAtomExPlayer_GetNumPlayedSamples>(Mod.NAME);
+        this.getNumPlayedSamples = scans.CreateWrapper<criAtomExPlayer_GetNumPlayedSamples>(Mod.Name);
 
         this.setFormat = new(scans, this.patterns.criAtomExPlayer_SetFormat);
 
         scans.AddScan<criAtomExPlayer_SetSamplingRate>(this.patterns.criAtomExPlayer_SetSamplingRate);
-        this.setSamplingRate = scans.CreateWrapper<criAtomExPlayer_SetSamplingRate>(Mod.NAME);
+        this.setSamplingRate = scans.CreateWrapper<criAtomExPlayer_SetSamplingRate>(Mod.Name);
 
         scans.AddScan<criAtomExPlayer_SetNumChannels>(this.patterns.criAtomExPlayer_SetNumChannels);
-        this.setNumChannels = scans.CreateWrapper<criAtomExPlayer_SetNumChannels>(Mod.NAME);
+        this.setNumChannels = scans.CreateWrapper<criAtomExPlayer_SetNumChannels>(Mod.Name);
 
         scans.AddScan<criAtomExPlayer_SetVolume>(this.patterns.criAtomExPlayer_SetVolume);
-        this.setVolume = scans.CreateWrapper<criAtomExPlayer_SetVolume>(Mod.NAME);
+        this.setVolume = scans.CreateWrapper<criAtomExPlayer_SetVolume>(Mod.Name);
 
         scans.AddScan<criAtomExPlayer_SetCategoryById>(this.patterns.criAtomExPlayer_SetCategoryById);
-        this.setCategoryById = scans.CreateWrapper<criAtomExPlayer_SetCategoryById>(Mod.NAME);
+        this.setCategoryById = scans.CreateWrapper<criAtomExPlayer_SetCategoryById>(Mod.Name);
 
         scans.AddScan<criAtomExPlayer_GetLastPlaybackId>(this.patterns.criAtomExPlayer_GetLastPlaybackId);
-        this.getLastPlaybackId = scans.CreateWrapper<criAtomExPlayer_GetLastPlaybackId>(Mod.NAME);
+        this.getLastPlaybackId = scans.CreateWrapper<criAtomExPlayer_GetLastPlaybackId>(Mod.Name);
 
         scans.AddScan<criAtomExPlayer_SetCategoryByName>(this.patterns.criAtomExPlayer_SetCategoryByName);
-        this.setCategoryByName = scans.CreateWrapper<criAtomExPlayer_SetCategoryByName>(Mod.NAME);
+        this.setCategoryByName = scans.CreateWrapper<criAtomExPlayer_SetCategoryByName>(Mod.Name);
 
         scans.AddScan<criAtomExPlayer_GetCategoryInfo>(this.patterns.criAtomExPlayer_GetCategoryInfo);
-        this.getCategoryInfo = scans.CreateWrapper<criAtomExPlayer_GetCategoryInfo>(Mod.NAME);
+        this.getCategoryInfo = scans.CreateWrapper<criAtomExPlayer_GetCategoryInfo>(Mod.Name);
 
         scans.AddScan<criAtomExPlayer_UpdateAll>(this.patterns.criAtomExPlayer_UpdateAll);
-        this.updateAll = scans.CreateWrapper<criAtomExPlayer_UpdateAll>(Mod.NAME);
+        this.updateAll = scans.CreateWrapper<criAtomExPlayer_UpdateAll>(Mod.Name);
 
         scans.AddScan<criAtomExPlayer_LimitLoopCount>(this.patterns.criAtomExPlayer_LimitLoopCount);
-        this.limitLoopCount = scans.CreateWrapper<criAtomExPlayer_LimitLoopCount>(Mod.NAME);
+        this.limitLoopCount = scans.CreateWrapper<criAtomExPlayer_LimitLoopCount>(Mod.Name);
 
         scans.AddScan<criAtomExPlayer_Stop>(this.patterns.criAtomExPlayer_Stop);
-        this.stop = scans.CreateWrapper<criAtomExPlayer_Stop>(Mod.NAME);
+        this.stop = scans.CreateWrapper<criAtomExPlayer_Stop>(Mod.Name);
 
         scans.AddScan<criAtomExPlayer_SetAisacControlByName>(this.patterns.criAtomExPlayer_SetAisacControlByName);
-        this.setAisacControlByName = scans.CreateWrapper<criAtomExPlayer_SetAisacControlByName>(Mod.NAME);
+        this.setAisacControlByName = scans.CreateWrapper<criAtomExPlayer_SetAisacControlByName>(Mod.Name);
     }
 
     public void SetDevMode(bool devMode) => this.devMode = devMode;
