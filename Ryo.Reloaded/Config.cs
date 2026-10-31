@@ -15,9 +15,27 @@ public class Config : Configurable<Config>
     public bool DevMode { get; set; } = false;
 
     [DisplayName("Unencrypted HCA Support")]
-    [Description("Enables support for playing unencrypted HCA in games with audio encryption. (Experimental)")]
+    [Description("Enables support for playing unencrypted HCA in games with audio encryption.")]
     [DefaultValue(true)]
     public bool UnencryptedHcaEnabled { get; set; } = true;
+
+    [Category("Debugging")]
+    [DisplayName("CriWare Logging")]
+    [Description("Show CriWare logs in the console.")]
+    [DefaultValue(false)]
+    public bool CriLogsEnabled { get; set; } = false;
+    
+    [Category("Debugging")]
+    [DisplayName("Force Rebuild ACBs")]
+    [Description("Forces all ACBs to be rebuilt.")]
+    [DefaultValue(false)]
+    public bool ForceRebuildAcbs { get; set; } = false;
+
+    [Category("Debugging")]
+    [DisplayName("Force Ryo Classic")]
+    [Description("Uses original Ryo implemenation instead of Ryo 3+.")]
+    [DefaultValue(false)]
+    public bool ForceRyoClassic { get; set; } = false;
 }
 
 /// <summary>

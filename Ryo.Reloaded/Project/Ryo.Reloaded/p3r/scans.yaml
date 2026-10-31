@@ -1,0 +1,33 @@
+criAtomExAcb_LoadAcbData:
+  candidates:
+    - pattern: '48 89 5C 24 ?? 48 89 6C 24 ?? 48 89 74 24 ?? 57 41 54 41 55 41 56 41 57 48 83 EC 50 33 F6'
+
+CRIATOM_BuildCueWaveformSource:
+  candidates:
+    - pattern: '48 8B C4 48 89 58 ?? 48 89 68 ?? 48 89 70 ?? 48 89 78 ?? 41 54 41 56 41 57 48 83 EC 30 83 CB FF'
+
+CRIERR_DispatchDiagnostic:
+  candidates:
+    - pattern: '48 8B C4 48 89 58 ?? 48 89 68 ?? 48 89 70 ?? 57 41 56 41 57 48 83 EC 30 4C 8D 70'
+
+CRIATOM_AddFileSourceEntry:
+  candidates:
+    - pattern: '48 89 5C 24 ?? 48 89 74 24 ?? 57 48 83 EC 20 49 8B F8 48 8B F2 48 8B D9 E8 ?? ?? ?? ?? 48 85 C0'
+
+CRIATOM_AddAwbSourceEntry:
+  candidates:
+    - pattern: '48 8B C4 48 89 58 ?? 48 89 68 ?? 48 89 70 ?? 48 89 78 ?? 41 56 48 83 EC 20 45 8B F0'
+
+CRIATOM_GetPlaybackIdFromContext:
+  candidates:
+    - pattern: '4C 8B D1 48 85 C9 75 ?? 83 C8 FF C3 48 2B 0D ?? ?? ?? ?? 49 BB A1 0E EA A0 0E EA A0 0E'
+
+CriAtomExCueLinkCallback_PTR:
+  candidates:
+    - pattern: 'FF 15 ?? ?? ?? ?? 48 83 63 ?? 00 48 8B D3'
+      transform: 'ResolveRelativeAddress(result)'
+
+GMalloc:
+  candidates:
+    - pattern: '48 8B 0D ?? ?? ?? ?? 48 85 C9 75 ?? E8 ?? ?? ?? ?? 48 8B 0D ?? ?? ?? ?? 48 8B 01 48 8B D3 FF 50 ?? 48 83 C4 20'
+      transform: 'ResolveRelativeAddress(result)'

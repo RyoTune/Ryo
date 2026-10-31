@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0-windows</TargetFramework>
+    <TargetFramework>net9.0-windows</TargetFramework>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <LangVersion>12.0</LangVersion>
@@ -40,12 +40,14 @@
     <None Update="Preview.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <Content Include="Project\**\*">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Reloaded.Mod.Interfaces" Version="2.4.0" ExcludeAssets="runtime" />
     <PackageReference Include="Reloaded.SharedLib.Hooks" Version="1.9.0" />
-    <PackageReference Include="RyoTune.Reloaded" Version="4.2.1" />
     <PackageReference Include="SharedScans.Interfaces" Version="1.2.0" />
     <PackageReference Include="System.IO.Hashing" Version="9.0.4" />
     <PackageReference Include="YamlDotNet" Version="16.3.0" />
@@ -53,6 +55,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Ryo.Interfaces\Ryo.Interfaces.csproj" />
+    <ProjectReference Include="..\submodules\RyoTune.Reloaded\Library\RyoTune.Reloaded.csproj" />
   </ItemGroup>
 
 </Project>

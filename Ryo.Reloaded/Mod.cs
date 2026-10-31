@@ -16,76 +16,90 @@ using System.Drawing;
 using System.Runtime.InteropServices;
 using Reloaded.Hooks.ReloadedII.Interfaces;
 using Ryo.Reloaded.CRI;
+using Ryo.Reloaded.CRI.CriAtom;
 using Ryo.Reloaded.CRI.CriWare;
 
 namespace Ryo.Reloaded;
 
 public unsafe class Mod : ModBase, IExports
 {
-    public const string NAME = "Ryo";
+    public const string Name = "Ryo";
 
-    private readonly IModLoader modLoader;
-    private readonly IReloadedHooks reloadedHooks;
-    private readonly ILogger log;
-    private readonly IMod owner;
+    private readonly IModLoader _modLoader;
+    private readonly IReloadedHooks _reloadedHooks;
+    private readonly ILogger _log;
+    private readonly IMod _owner;
 
-    private Config config;
-    private readonly IModConfig modConfig;
+    private readonly IModConfig _modConfig;
 
-    private readonly string game;
+    private readonly string _game;
 
-    private readonly CriAtomEx criAtomEx;
-    private readonly CriAtomRegistry criAtomRegistry;
-    private readonly CriMana criMana;
-    private readonly CriWareHooks criHooks;
+    private CriAtomEx _criAtomEx;
+    private readonly CriAtomRegistry _criAtomRegistry;
+    private readonly CriMana _criMana;
+    private readonly CriWareHooks _criHooks;
 
-    private readonly AudioRegistry audioRegistry;
-    private readonly AudioService audioService;
-    private readonly AudioPreprocessor preprocessor = new();
+    private readonly AudioRegistry _audioRegistry;
+    private AudioService _audioService;
+    private readonly AudioPreprocessor _preprocessor = new();
 
-    private readonly MovieRegistry movieRegistry;
-    private readonly MovieService movieService;
+    private readonly MovieRegistry _movieRegistry;
+    private readonly MovieService _movieService;
 
-    private readonly RyoApi ryoApi;
+    private readonly RyoApi _ryoApi;
+    private CriAtomService _atomService;
 
     public Mod(ModContext context)
     {
-        this.modLoader = context.ModLoader;
-        this.log = context.Logger;
-        this.owner = context.Owner;
-        this.config = context.Configuration;
-        this.modConfig = context.ModConfig;
-        this.reloadedHooks = context.Hooks!;
+        _modLoader = context.ModLoader;
+        _log = context.Logger;
+        _owner = context.Owner;
+        _modConfig = context.ModConfig;
+        _reloadedHooks = context.Hooks!;
+        Config = context.Configuration;
 
 #if DEBUG
         Debugger.Launch();
 #endif
 
-        this.game = Path.GetFileNameWithoutExtension(this.modLoader.GetAppConfig().AppLocation);
+        _game = Path.GetFileNameWithoutExtension(_modLoader.GetAppConfig().AppLocation);
 
-        Project.Initialize(this.modConfig, this.modLoader, this.log, Color.FromArgb(110, 209, 248), true);
-        Log.LogLevel = this.config.LogLevel;
-        Log.Debug($"Game: {game}");
+        Project.Initialize(_modConfig, _modLoader, _log, Color.FromArgb(110, 209, 248), true);
+        Log.LogLevel = Config.LogLevel;
+        Log.Debug($"Game: {_game}");
 
-        this.modLoader.GetController<ISharedScans>().TryGetTarget(out var scans);
+        _modLoader.GetController<ISharedScans>().TryGetTarget(out var scans);
         
-        this.criAtomEx = new(this.game, scans!, this.reloadedHooks);
-        this.modLoader.AddOrReplaceController<ICriAtomEx>(this.owner, this.criAtomEx);
+        _modLoader.AddOrReplaceController<ICriAtomEx>(_owner, _criAtomEx);
 
-        this.criAtomRegistry = new();
-        this.modLoader.AddOrReplaceController<ICriAtomRegistry>(this.owner, this.criAtomRegistry);
+        _criAtomRegistry = new();
+        _modLoader.AddOrReplaceController<ICriAtomRegistry>(_owner, _criAtomRegistry);
 
-        this.criMana = new(scans!, this.game);
-        this.criHooks = new(scans!, this.game);
+        _criMana = new(scans!, _game);
+        _criHooks = new(scans!, _game);
+        _audioRegistry = new(_game, _preprocessor);
+        
+        _modLoader.WhenModsLoaded(() =>
+        {
+            // Use Ryo 3+ for games that support it.
+            if (!Config.ForceRyoClassic
+                && Project.Scans.HasScan(nameof(CriAtomService.CRIATOM_BuildCueWaveformSource)))
+            {
+                _atomService = new(_audioRegistry);
+            }
+            else
+            {
+                _criAtomEx = new(_game, scans!, _reloadedHooks);
+                _audioService = new(_game, scans!, _criAtomEx, _criAtomRegistry, _audioRegistry);
+                _audioService.SetDevMode(Config.DevMode);
+            }
+        });
+        
+        _movieRegistry = new();
+        _movieService = new(scans!, _criMana, _movieRegistry);
 
-        this.audioRegistry = new(this.game, this.preprocessor);
-        this.audioService = new(this.game, scans!, this.criAtomEx, this.criAtomRegistry, this.audioRegistry);
-
-        this.movieRegistry = new();
-        this.movieService = new(scans!, this.criMana, this.movieRegistry);
-
-        this.ryoApi = new(this.criAtomRegistry, this.audioRegistry, this.preprocessor, this.movieRegistry);
-        this.modLoader.AddOrReplaceController<IRyoApi>(this.owner, this.ryoApi);
+        _ryoApi = new(_criAtomRegistry, _audioRegistry, _preprocessor, _movieRegistry);
+        _modLoader.AddOrReplaceController<IRyoApi>(_owner, _ryoApi);
 
         Project.Scans.AddScan("\"CRI AtomEx/PC\" String", "43 52 49 20 41 74 6F 6D 45 78 2F 50 43", result =>
         {
@@ -106,31 +120,33 @@ public unsafe class Mod : ModBase, IExports
             CriWareConfig.HcaDecodedEncryptKeyOffset = *tableFieldOfs;
         }, () => Log.Information("Failed to find 'HCADecoder_SetDecryptionTable'. Unencrypted HCA in encrypted games is unsupported."));
 
-        this.modLoader.ModLoading += this.OnModLoading;
+        _modLoader.ModLoading += OnModLoading;
 
-        this.ApplyConfig();
+        ApplyConfig();
     }
+
+    public static Config Config { get; private set; } = null!;
 
     private void OnModLoading(IModV1 newMod, IModConfigV1 newModConfig)
     {
         if (!Project.IsModDependent(newModConfig)) return;
 
-        var modDir = this.modLoader.GetDirectoryForModId(newModConfig.ModId);
-        var ryoDir = Path.Join(modDir, "ryo", this.game);
+        var modDir = _modLoader.GetDirectoryForModId(newModConfig.ModId);
+        var ryoDir = Path.Join(modDir, "ryo", _game);
         if (Directory.Exists(ryoDir))
         {
-            this.audioRegistry.AddAudioFolder(ryoDir);
-            this.movieRegistry.AddMoviePath(ryoDir);
+            _audioRegistry.AddAudioFolder(ryoDir);
+            _movieRegistry.AddMoviePath(ryoDir);
         }
     }
 
     private void ApplyConfig()
     {
-        Log.LogLevel = this.config.LogLevel;
-        this.criAtomEx.SetDevMode(this.config.DevMode);
-        this.audioService.SetDevMode(this.config.DevMode);
-        this.movieService.SetDevMode(this.config.DevMode);
-        this.criHooks.SetConfig(this.config);
+        Log.LogLevel = Config.LogLevel;
+        _criAtomEx?.SetDevMode(Config.DevMode);
+        _audioService?.SetDevMode(Config.DevMode);
+        _movieService.SetDevMode(Config.DevMode);
+        _criHooks.SetConfig(Config);
     }
 
     #region Standard Overrides
@@ -138,9 +154,9 @@ public unsafe class Mod : ModBase, IExports
     {
         // Apply settings from configuration.
         // ... your code here.
-        this.config = configuration;
-        this.log.WriteLine($"[{this.modConfig.ModId}] Config Updated: Applying");
-        this.ApplyConfig();
+        Config = configuration;
+        _log.WriteLine($"[{_modConfig.ModId}] Config Updated: Applying");
+        ApplyConfig();
     }
 
     public Type[] GetTypes() => [typeof(ICriAtomEx), typeof(IRyoApi), typeof(ICriAtomRegistry)];
