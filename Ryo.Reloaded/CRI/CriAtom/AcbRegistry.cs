@@ -10,20 +10,19 @@ namespace Ryo.Reloaded.CRI.CriAtom;
 
 internal unsafe class AcbRegistry
 {
-    private readonly IRyoAllocator _allocator;
-    private readonly AudioRegistry _audioRegistry;
-
     private delegate nint criAtomExAcb_LoadAcbData(nint acbData, int acbDataSize, nint awbBinder, nint awbPath, nint work, int workSize);
     private readonly SHFunction<criAtomExAcb_LoadAcbData> _criAtomExAcb_LoadAcbData;
     
+    private readonly AudioRegistry _audioRegistry;
+    private readonly IRyoAllocator _allocator;
     private readonly ConcurrentDictionary<string, AcbEntry> _acbs = [];
     private readonly ConcurrentDictionary<nint, string> _acbHnToName = [];
 
-    public AcbRegistry(IRyoAllocator allocator, AudioRegistry audioRegistry)
+    public AcbRegistry(AudioRegistry audioRegistry, IRyoAllocator allocator)
     {
-        _allocator = allocator;
         _audioRegistry = audioRegistry;
-        
+        _allocator = allocator;
+
         _criAtomExAcb_LoadAcbData = new(criAtomExAcb_LoadAcbDataImpl);
     }
     

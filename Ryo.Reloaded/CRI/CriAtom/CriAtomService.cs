@@ -30,17 +30,10 @@ internal unsafe class CriAtomService
     private readonly AudioRegistry _audioRegistry;
     private readonly AcbRegistry _acbRegistry;
     
-    public CriAtomService(AudioRegistry audioRegistry)
+    public CriAtomService(AudioRegistry audioRegistry, IRyoAllocator allocator)
     {
-        // TODO: Need to create allocator after mods loaded,
-        // to support external mod scans.
-        if (Project.Settings.TryGetSetting(UnrealAllocator.UnrealIniId, "Malloc", "FMallocBinned2", out _))
-            _allocator = new UnrealAllocator();
-        else
-            _allocator = new DefaultAllocator();
-
         _audioRegistry = audioRegistry;
-        _acbRegistry = new(_allocator, audioRegistry);
+        _acbRegistry = new(audioRegistry, allocator);
         
         _CRIATOM_BuildCueWaveformSource = new(CRIATOM_BuildCueWaveformSourceImpl);
         _CRIERR_DispatchDiagnostic = new(CRIERR_DispatchDiagnosticImpl);

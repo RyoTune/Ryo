@@ -15,6 +15,7 @@ using SharedScans.Interfaces;
 using System.Drawing;
 using System.Runtime.InteropServices;
 using Reloaded.Hooks.ReloadedII.Interfaces;
+using Ryo.Reloaded.Common.Memory;
 using Ryo.Reloaded.CRI;
 using Ryo.Reloaded.CRI.CriAtom;
 using Ryo.Reloaded.CRI.CriWare;
@@ -85,13 +86,20 @@ public unsafe class Mod : ModBase, IExports
             if (!Config.ForceRyoClassic
                 && Project.Scans.HasScan(nameof(CriAtomService.CRIATOM_BuildCueWaveformSource)))
             {
-                _atomService = new(_audioRegistry);
+                var isUnrealGame = Project.Scans.HasScan("GMalloc");
+                _atomService = isUnrealGame
+                    ? new(_audioRegistry, new UnrealAllocator())
+                    : new(_audioRegistry, new DefaultAllocator());
+                
+                Log.Information($"Using Ryo 3+ for: {_game}");
             }
             else
             {
                 _criAtomEx = new(_game, scans!, _reloadedHooks);
                 _audioService = new(_game, scans!, _criAtomEx, _criAtomRegistry, _audioRegistry);
                 _audioService.SetDevMode(Config.DevMode);
+                
+                Log.Information($"Using Ryo Classic for: {_game}");
             }
         });
         
