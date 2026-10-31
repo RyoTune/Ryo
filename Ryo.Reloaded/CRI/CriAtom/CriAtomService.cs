@@ -26,7 +26,6 @@ internal unsafe class CriAtomService
     private record struct LinkCue(Cue ParentCue, uint ParentPlaybackId);
     private readonly ConcurrentDictionary<uint, LinkCue> _linkCuePlaybacks = [];
     
-    private readonly IRyoAllocator _allocator;
     private readonly AudioRegistry _audioRegistry;
     private readonly AcbRegistry _acbRegistry;
     

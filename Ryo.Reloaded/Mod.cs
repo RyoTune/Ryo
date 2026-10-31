@@ -35,20 +35,20 @@ public unsafe class Mod : ModBase, IExports
 
     private readonly string _game;
 
-    private CriAtomEx _criAtomEx;
+    private CriAtomEx? _criAtomEx;
     private readonly CriAtomRegistry _criAtomRegistry;
     private readonly CriMana _criMana;
     private readonly CriWareHooks _criHooks;
 
     private readonly AudioRegistry _audioRegistry;
-    private AudioService _audioService;
+    private AudioService? _audioService;
     private readonly AudioPreprocessor _preprocessor = new();
 
     private readonly MovieRegistry _movieRegistry;
     private readonly MovieService _movieService;
 
     private readonly RyoApi _ryoApi;
-    private CriAtomService _atomService;
+    private CriAtomService? _atomService;
 
     public Mod(ModContext context)
     {
@@ -70,8 +70,6 @@ public unsafe class Mod : ModBase, IExports
         Log.Debug($"Game: {_game}");
 
         _modLoader.GetController<ISharedScans>().TryGetTarget(out var scans);
-        
-        _modLoader.AddOrReplaceController<ICriAtomEx>(_owner, _criAtomEx);
 
         _criAtomRegistry = new();
         _modLoader.AddOrReplaceController<ICriAtomRegistry>(_owner, _criAtomRegistry);
@@ -96,6 +94,7 @@ public unsafe class Mod : ModBase, IExports
             else
             {
                 _criAtomEx = new(_game, scans!, _reloadedHooks);
+                _modLoader.AddOrReplaceController<ICriAtomEx>(_owner, _criAtomEx);
                 _audioService = new(_game, scans!, _criAtomEx, _criAtomRegistry, _audioRegistry);
                 _audioService.SetDevMode(Config.DevMode);
                 
