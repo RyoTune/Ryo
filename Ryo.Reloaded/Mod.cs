@@ -70,6 +70,9 @@ public unsafe class Mod : ModBase, IExports
         Log.Debug($"Game: {_game}");
 
         _modLoader.GetController<ISharedScans>().TryGetTarget(out var scans);
+        
+        // TODO: BGME for Unreal currently requests this, but doesn't use it.
+        _modLoader.AddOrReplaceController<ICriAtomEx>(_owner, _criAtomEx);
 
         _criAtomRegistry = new();
         _modLoader.AddOrReplaceController<ICriAtomRegistry>(_owner, _criAtomRegistry);
