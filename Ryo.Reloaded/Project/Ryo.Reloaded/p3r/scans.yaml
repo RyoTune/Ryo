@@ -9,6 +9,8 @@ CRIATOM_BuildCueWaveformSource:
 CRIERR_DispatchDiagnostic:
   candidates:
     - pattern: '48 8B C4 48 89 58 ?? 48 89 68 ?? 48 89 70 ?? 57 41 56 41 57 48 83 EC 30 4C 8D 70'
+    - pattern: '48 89 E0 48 89 58 ?? 48 89 68 ?? 48 89 70 ?? 48 89 78 ?? 41 56 48 83 EC 30 45 31 C9'
+      name: 1.11
 
 CRIATOM_AddFileSourceEntry:
   candidates:
