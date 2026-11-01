@@ -30,7 +30,7 @@ namespace Ryo.Reloaded.Template.Configuration
 
         private IUpdatableConfigurable[] MakeConfigurations()
         {
-            _configurations = _configuratorMixin.MakeConfigurations(ConfigFolder!);
+            _configurations = _configuratorMixin.MakeConfigurations(ConfigFolder!, Context);
 
             // Add self-updating to configurations.
             for (int x = 0; x < Configurations.Length; x++)

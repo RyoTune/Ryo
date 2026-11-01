@@ -13,13 +13,12 @@ namespace Ryo.Reloaded.Template.Configuration
         /// Defines the configuration items to create.
         /// </summary>
         /// <param name="configFolder">Folder storing the configuration.</param>
-        public virtual IUpdatableConfigurable[] MakeConfigurations(string configFolder)
+        public virtual IUpdatableConfigurable[] MakeConfigurations(string configFolder, ConfiguratorContext context)
         {
             // You can add any Configurable here.
-            return new IUpdatableConfigurable[]
-            {
-            Configurable<Config>.FromFile(Path.Combine(configFolder, "Config.json"), "Default Config")
-            };
+            var appConfig = Configurable<Config>.FromFile(Path.Combine(configFolder, $"{context.Application.AppId}.json"),
+                "Default Config");
+            return [appConfig];
         }
 
         /// <summary>
