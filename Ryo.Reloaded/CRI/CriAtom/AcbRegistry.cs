@@ -41,14 +41,25 @@ internal unsafe class AcbRegistry
         Log.Debug($"{nameof(criAtomExAcb_LoadAcbData)} || Loading ACB: {acb.Name}");
         
         var registeredCues = _audioRegistry.GetRegisteredCuesForAcb(acb.Name);
-        var existingCueIds = acb.Cues().Select(x => (int)x.Id).ToHashSet();
+
+        var existingCueIds = new HashSet<int>();
+        var existingCueNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var cue in acb.Cues())
+        {
+            existingCueIds.Add((int)cue.Id);
+            existingCueNames.Add(cue.Name);
+        }
+        
+        //var existingCueIds = acb.Cues().Select(x => (int)x.Id).ToHashSet();
 
         var rebuildRequired = false;
         foreach (var cue in _audioRegistry.GetRegisteredCuesForAcb(acb.Name))
         {
-            rebuildRequired = true;
+            if (existingCueNames.Contains(cue.Identifier)) continue;
+            
             if (int.TryParse(cue.Identifier, out var newCueId) && !existingCueIds.Contains(newCueId))
             {
+                rebuildRequired = true;
                 if (cue.Config.TemplateCueId != null)
                 {
                     acb.AddCue((uint)newCueId, (uint)cue.Config.TemplateCueId.Value);
