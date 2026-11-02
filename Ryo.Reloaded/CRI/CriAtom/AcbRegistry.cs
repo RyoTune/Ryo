@@ -55,7 +55,14 @@ internal unsafe class AcbRegistry
         var rebuildRequired = false;
         foreach (var cue in _audioRegistry.GetRegisteredCuesForAcb(acb.Name))
         {
-            if (existingCueNames.Contains(cue.Identifier)) continue;
+            if (existingCueNames.Contains(cue.Identifier))
+            {
+                // TODO: Possibly support creating cues by cue name,
+                // but auto-assigning cue IDs could be problematic.
+                // Would have to first add all new cues using IDs, then
+                // add the cues using name.
+                continue;
+            }
             
             if (int.TryParse(cue.Identifier, out var newCueId) && !existingCueIds.Contains(newCueId))
             {
@@ -89,6 +96,8 @@ internal unsafe class AcbRegistry
 
         _acbs[acb.Name] = new(acb);
 
+        // TODO: Support custom ACBs.
+        // Probably need to hook criAtomExAcb_LoadAcbFile, then redirect to here with our ACB data.
         nint acbHn = 0;
         if (rebuildRequired || Mod.Config.ForceRebuildAcbs)
         {

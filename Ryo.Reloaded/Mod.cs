@@ -19,6 +19,7 @@ using Ryo.Reloaded.Common.Memory;
 using Ryo.Reloaded.CRI;
 using Ryo.Reloaded.CRI.CriAtom;
 using Ryo.Reloaded.CRI.CriWare;
+using RyoTune.Reloaded.Serialization.Yaml.Interfaces;
 
 namespace Ryo.Reloaded;
 
@@ -71,6 +72,9 @@ public unsafe class Mod : ModBase, IExports
 
         _modLoader.GetController<ISharedScans>().TryGetTarget(out var scans);
         
+        _modLoader.GetController<IReloadedYaml>().TryGetTarget(out var yaml);
+        var yamlDeserializer = yaml!.CreateDeserializer();
+        
         // TODO: BGME for Unreal currently requests this, but doesn't use it.
         _modLoader.AddOrReplaceController<ICriAtomEx>(_owner, _criAtomEx);
 
@@ -79,7 +83,7 @@ public unsafe class Mod : ModBase, IExports
 
         _criMana = new(scans!, _game);
         _criHooks = new(scans!, _game);
-        _audioRegistry = new(_game, _preprocessor);
+        _audioRegistry = new(_game, _preprocessor, yamlDeserializer);
         
         _modLoader.WhenModsLoaded(() =>
         {
@@ -105,7 +109,7 @@ public unsafe class Mod : ModBase, IExports
             }
         });
         
-        _movieRegistry = new();
+        _movieRegistry = new(yamlDeserializer);
         _movieService = new(scans!, _criMana, _movieRegistry);
 
         _ryoApi = new(_criAtomRegistry, _audioRegistry, _preprocessor, _movieRegistry);

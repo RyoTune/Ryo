@@ -1,14 +1,14 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using Ryo.Reloaded.Audio.Models;
 using Ryo.Definitions.Enums;
-using Ryo.Reloaded.Common;
 using Ryo.Interfaces.Classes;
 using Ryo.Reloaded.Audio.Models.Containers;
 using Ryo.Reloaded.Common.Models;
+using RyoTune.Reloaded.Serialization.Yaml.Interfaces;
 
 namespace Ryo.Reloaded.Audio;
 
-internal class AudioRegistry(string game, AudioPreprocessor preprocessor)
+internal class AudioRegistry(string game, AudioPreprocessor preprocessor, IYamlDeserializer yamlDeserializer)
 {
     private const string RyoFileDirName = "FILE.ryo";
     private const string RyoDataDirName = "DATA.ryo";
@@ -285,12 +285,12 @@ internal class AudioRegistry(string game, AudioPreprocessor preprocessor)
         return false;
     }
 
-    private static AudioConfig? ParseConfigFile(string configFile)
+    private AudioConfig? ParseConfigFile(string configFile)
     {
         try
         {
             Log.Debug($"Loading audio config: {configFile}");
-            var config = YamlSerializer.DeserializeFile<AudioConfig>(configFile);
+            var config = yamlDeserializer.Deserialize<AudioConfig>(File.ReadAllText(configFile));
             return config;
         }
         catch (Exception ex)

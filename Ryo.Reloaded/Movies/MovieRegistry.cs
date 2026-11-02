@@ -1,11 +1,11 @@
 ﻿using Ryo.Interfaces.Classes;
-using Ryo.Reloaded.Common;
 using Ryo.Reloaded.Common.Models;
 using System.Diagnostics.CodeAnalysis;
+using RyoTune.Reloaded.Serialization.Yaml.Interfaces;
 
 namespace Ryo.Reloaded.Movies;
 
-internal class MovieRegistry
+internal class MovieRegistry(IYamlDeserializer yamlDeserializer)
 {
     private readonly Dictionary<string, List<MovieContainer>> containers = new(StringComparer.OrdinalIgnoreCase);
 
@@ -84,7 +84,7 @@ internal class MovieRegistry
         return containers;
     }
 
-    private static MovieConfig? ParseConfigFile(string configFile)
+    private MovieConfig? ParseConfigFile(string configFile)
     {
         if (IsMovieConfig(configFile) == false)
         {
@@ -94,7 +94,7 @@ internal class MovieRegistry
         try
         {
             Log.Debug($"Loading movie config: {configFile}");
-            var config = YamlSerializer.DeserializeFile<MovieConfig>(configFile);
+            var config = yamlDeserializer.Deserialize<MovieConfig>(File.ReadAllText(configFile));
             return config;
         }
         catch (Exception ex)
