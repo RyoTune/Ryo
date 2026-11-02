@@ -10,13 +10,17 @@ namespace Ryo.Reloaded.CRI.CriAtom;
 
 internal unsafe class AcbRegistry
 {
-    private delegate nint criAtomExAcb_LoadAcbData(nint acbData, int acbDataSize, nint awbBinder, nint awbPath, nint work, int workSize);
+    private delegate nint criAtomExAcb_LoadAcbData(void* acbData, int acbDataSize, nint awbBinder, nint awbPath, nint work, int workSize);
     private readonly SHFunction<criAtomExAcb_LoadAcbData> _criAtomExAcb_LoadAcbData;
+    
+    private delegate void criAtomConfig_Register(void* acfData, int acfDataSize);
+    private readonly SHFunction<criAtomConfig_Register> _criAtomConfig_Register;
     
     private readonly AudioRegistry _audioRegistry;
     private readonly IRyoAllocator _allocator;
     private readonly ConcurrentDictionary<string, AcbEntry> _acbs = [];
     private readonly ConcurrentDictionary<nint, string> _acbHnToName = [];
+    private AcfCatalog? _acf;
 
     public AcbRegistry(AudioRegistry audioRegistry, IRyoAllocator allocator)
     {
@@ -24,6 +28,7 @@ internal unsafe class AcbRegistry
         _allocator = allocator;
 
         _criAtomExAcb_LoadAcbData = new(criAtomExAcb_LoadAcbDataImpl);
+        _criAtomConfig_Register = new(criAtomConfig_RegisterImpl);
     }
     
     public Cue GetCue(string acbName, int cueId) => _acbs[acbName].GetCue(cueId);
@@ -34,10 +39,10 @@ internal unsafe class AcbRegistry
 
     public Cue GetCue(CriAtomExAcbHn* acbHn, string cueName) => GetCue(_acbHnToName[(nint)acbHn], cueName);
 
-    private nint criAtomExAcb_LoadAcbDataImpl(nint acbData, int acbDataSize, nint awbBinder, nint awbPath, nint work, int workSize)
+    private nint criAtomExAcb_LoadAcbDataImpl(void* acbData, int acbDataSize, nint awbBinder, nint awbPath, nint work, int workSize)
     {
-        var acbSpan = new ReadOnlySpan<byte>((void*)acbData, acbDataSize);
-        var acb = new AcbBank(acbSpan);
+        var acbSpan = new ReadOnlySpan<byte>(acbData, acbDataSize);
+        var acb = new AcbBank(acbSpan, _acf);
         Log.Debug($"{nameof(criAtomExAcb_LoadAcbData)} || Loading ACB: {acb.Name}");
         
         var registeredCues = _audioRegistry.GetRegisteredCuesForAcb(acb.Name);
@@ -49,8 +54,6 @@ internal unsafe class AcbRegistry
             existingCueIds.Add((int)cue.Id);
             existingCueNames.Add(cue.Name);
         }
-        
-        //var existingCueIds = acb.Cues().Select(x => (int)x.Id).ToHashSet();
 
         var rebuildRequired = false;
         foreach (var cue in _audioRegistry.GetRegisteredCuesForAcb(acb.Name))
@@ -105,7 +108,7 @@ internal unsafe class AcbRegistry
             var rebuiltAcbBuffer = _allocator.Malloc(rebuiltAcb.Length);
             Marshal.Copy(rebuiltAcb, 0, rebuiltAcbBuffer, rebuiltAcb.Length);
         
-            acbHn = _criAtomExAcb_LoadAcbData.Hook.OriginalFunction(rebuiltAcbBuffer, rebuiltAcb.Length, awbBinder, awbPath, work, workSize);
+            acbHn = _criAtomExAcb_LoadAcbData.Hook.OriginalFunction((void*)rebuiltAcbBuffer, rebuiltAcb.Length, awbBinder, awbPath, work, workSize);
             if (acbHn != 0)
             {
                 Log.Debug($"Rebuilt ACB: {acb.Name}");
@@ -131,7 +134,16 @@ internal unsafe class AcbRegistry
         _acbHnToName[acbHn] = acb.Name;
         return acbHn;
     }
-
+    
+    private void criAtomConfig_RegisterImpl(void* acfData, int acfDataSize)
+    {
+        var acfSpan = new ReadOnlySpan<byte>(acfData, acfDataSize);
+        _acf = new(acfSpan);
+        
+        Log.Debug($"{nameof(criAtomConfig_Register)} || Loading ACF: {_acf.Name}");
+        _criAtomConfig_Register.Hook!.OriginalFunction(acfData, acfDataSize);
+    }
+    
     private class AcbEntry
     {
         private readonly Dictionary<int, Cue> _idToCue = [];

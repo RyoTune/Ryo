@@ -21,6 +21,10 @@ CRIATOM_AddAwbSourceEntry:
 CRIATOM_GetPlaybackIdFromContext:
   candidates:
     - pattern: '4C 8B D1 48 85 C9 75 ?? 83 C8 FF C3 48 2B 0D ?? ?? ?? ?? 49 BB 39 8E E3 38 8E E3 38 0E 49 8B C3 48 F7 E9 49 8B C3 48 C1 FA 04'
+      
+criAtomConfig_Register:
+  candidates:
+    - pattern: '48 83 EC 28 48 8B C1 48 8B 0D ?? ?? ?? ?? 48 85 C9 74'
 
 CriAtomExCueLinkCallback_PTR:
   candidates:

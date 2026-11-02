@@ -17,7 +17,10 @@ public sealed class AcfCatalog
     public uint CategoriesPerPlayback { get; }
     public IReadOnlyList<string> BusNames { get; }
     public string Name { get; }
-    public AcfCatalog(byte[] bytes)
+    public AcfCatalog(byte[] bytes) : this((ReadOnlySpan<byte>)(bytes ?? throw new ArgumentNullException(nameof(bytes)))) { }
+
+    /// <summary>Parses the ACF without retaining the supplied span.</summary>
+    public AcfCatalog(ReadOnlySpan<byte> bytes)
     {
         var root = UtfTable.Read(bytes);
         if (root.Rows.Count != 1) throw new InvalidDataException("Expected one ACF header row.");
