@@ -373,29 +373,10 @@ public sealed partial class AcbBank
             var cues = Table("CueTable");
             if (templateRow >= cues.Rows.Count)
                 throw new InvalidDataException("Template cue index is outside CueTable.");
-            // Temporary diagnostic allowlist: remove names to replace their template
-            // values with the UTF type's zero/empty value. Keep CueId (overridden below),
-            // ReferenceType and ReferenceIndex while testing non-graph metadata.
-            // This filters CueTable only; the referenced playback graph remains shared.
-            HashSet<string> templateColumns = new(StringComparer.Ordinal)
-            {
-                "CueId",
-                "ReferenceType",
-                "ReferenceIndex",
-                "UserData",
-                "Worksize",
-                "AisacControlMap",
-                "Length",
-                "NumAisacControlMaps",
-                "HeaderVisibility",
-                "NumRelatedWaveforms"
-            };
             var fields = cues.Columns.Select((column, i) =>
-                    (column.Name, Value: !templateColumns.Contains(column.Name)
-                        ? UtfTable.Zero(column.Type)
-                        : cues.Rows[templateRow][i] is byte[] blob
-                            ? blob.ToArray()
-                            : cues.Rows[templateRow][i]))
+                    (column.Name, Value: cues.Rows[templateRow][i] is byte[] blob
+                        ? blob.ToArray()
+                        : cues.Rows[templateRow][i]))
                 .ToDictionary(pair => pair.Name, pair => pair.Value);
             fields["CueId"] = id;
             ushort row = Add("CueTable", fields);
