@@ -40,12 +40,14 @@ internal class AudioRegistry(string game, AudioPreprocessor preprocessor, IYamlD
         if (!_registeredCues.TryGetValue(config.AcbName, out var cueRegistrations))
             _registeredCues[config.AcbName] = cueRegistrations = [];
 
-        var cueConfig = new CueConfig()
+        var cueConfig = new CueConfig
         {
             CategoryIds = config.CategoryIds,
             CategoryNames = config.CategoryNames,
             Volume = config.Volume,
             RyoClassicVolume = config.RyoClassicVolume,
+            TemplateCueId = config.TemplateCueId,
+            TemplateCueName = config.TemplateCueName,
         };
         
         cueRegistrations[new(config.CueName, config.AcbName)] = new(config.CueName, cueConfig);
