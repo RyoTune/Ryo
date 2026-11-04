@@ -65,7 +65,6 @@ internal static class GameDefaults
         {
             AcbName = "bgm",
             Volume = 0.15f,
-            TemplateCueId = 600001,
         },
         ["SMT5V-Win64-Shipping"] = new()
         {
