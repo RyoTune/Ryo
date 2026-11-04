@@ -20,6 +20,12 @@ public class Config : Configurable<Config>
     public bool UnencryptedHcaEnabled { get; set; } = true;
 
     [Category("Debugging")]
+    [DisplayName("Ryo 3+: Classic Volume Fix")]
+    [Description("Boosts the volume by a flat amount for audio mods\nin games that previously had loudness issues.")]
+    [DefaultValue(0.75)]
+    public double RyoClassicVolumeBoost { get; set; } = 0.75;
+
+    [Category("Debugging")]
     [DisplayName("CriWare Logging")]
     [Description("Show CriWare logs in the console.")]
     [DefaultValue(false)]

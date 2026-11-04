@@ -13,7 +13,7 @@ public sealed class BusSends
     public void Add(string name, float level)
     {
         if (name == null) throw new ArgumentNullException(nameof(name));
-        if (level < 0.0f || level > 1.0f) throw new ArgumentOutOfRangeException(nameof(level));
+        if (!float.IsFinite(level) || level < 0.0f) throw new ArgumentOutOfRangeException(nameof(level));
         _busses.Add(name, level);
     }
     
@@ -53,8 +53,8 @@ public sealed partial class AcbBank
 {
     private readonly List<string> _clearedTables = [];
     private readonly Dictionary<string, UtfTable> _tables = new(StringComparer.Ordinal);
-    private HashSet<uint> _usedCueIds = [];
-    private HashSet<string> _usedCueNames = [];
+    private Dictionary<uint, CueHandle>? _cuesById;
+    private Dictionary<string, CueHandle>? _cuesByName;
 
     public UtfTable Header { get; private set; }
 
@@ -173,7 +173,9 @@ public sealed partial class AcbBank
         foreach (var c in t.Columns)
             if (!fields.ContainsKey(c.Name))
                 throw new NotSupportedException($"No authoring default for {name}.{c.Name}.");
-        return checked((ushort)t.AddRow(actual));
+        ushort row = checked((ushort)t.AddRow(actual));
+        InvalidateIdentities();
+        return row;
     }
 
     private T Transaction<T>(Func<T> operation)
@@ -184,6 +186,7 @@ public sealed partial class AcbBank
             Supported();
             T result = operation();
             SortCues();
+            InvalidateIdentities();
             // Sorting invalidates row indices previously returned to callers. Refresh the
             // current result; retained handles should be resolved again by ID after edits.
             if (result is CueHandle cue)
@@ -194,40 +197,76 @@ public sealed partial class AcbBank
         {
             Header = UtfTable.Read(bytes);
             _tables.Clear();
-            _usedCueIds = [];
-            _usedCueNames = [];
+            InvalidateIdentities();
             throw;
         }
     }
 
-    private CueHandle Cue(uint id) => Cues().SingleOrDefault(c => c.Id == id)
-                                      ?? throw new ArgumentException($"Cue ID {id} not found.");
+    private CueHandle Cue(uint id) => TryGetCueHandle(id, out var cue) ? cue : throw new ArgumentException($"Cue ID {id} not found.");
 
     private void NewIdentity(uint id, string name)
     {
         if (id > int.MaxValue || string.IsNullOrWhiteSpace(name) || name.Contains('\0'))
             throw new ArgumentException("A cue needs a nonreserved ID and a nonempty name without NUL.");
         EnsureIdentities();
-        if (_usedCueIds.Contains(id) || _usedCueNames.Contains(name))
+        if (_cuesById!.ContainsKey(id) || _cuesByName!.ContainsKey(name))
             throw new ArgumentException("Duplicate cue ID or name.");
+    }
+
+    /// <summary>Finds a cue by public ID. Unnamed cues have an empty Name.</summary>
+    public bool TryGetCueHandle(uint id, [System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out CueHandle? cue)
+    {
+        EnsureIdentities();
+        return _cuesById!.TryGetValue(id, out cue);
+    }
+
+    /// <summary>Finds a cue by its case-sensitive name, including aliases.</summary>
+    public bool TryGetCueHandle(string name, [System.Diagnostics.CodeAnalysis.NotNullWhen(true)] out CueHandle? cue)
+    {
+        ArgumentNullException.ThrowIfNull(name);
+        EnsureIdentities();
+        return _cuesByName!.TryGetValue(name, out cue);
+    }
+
+    private void InvalidateIdentities()
+    {
+        _cuesById = null;
+        _cuesByName = null;
     }
 
     private void EnsureIdentities()
     {
+        if (_cuesById is not null && _cuesByName is not null) return;
         var cues = Table("CueTable");
         var names = Table("CueNameTable");
-        
-        // Include unnamed cues and every alias, rather than just the Cues() view.
-        _usedCueIds = Enumerable.Range(0, cues.Rows.Count).Select(i => cues.Number(i, "CueId")).ToHashSet();
-        _usedCueNames = Enumerable.Range(0, names.Rows.Count).Select(i => names.Text(i, "CueName"))
-            .ToHashSet(StringComparer.Ordinal);
-    }
+        var byId = new Dictionary<uint, CueHandle>();
+        var byName = new Dictionary<string, CueHandle>(StringComparer.OrdinalIgnoreCase);
+        for (int i = 0; i < names.Rows.Count; i++)
+        {
+            ushort row = checked((ushort)names.Number(i, "CueIndex"));
+            if (row >= cues.Rows.Count) throw new InvalidDataException("Cue name points outside CueTable.");
+            var cue = Handle(row, names.Text(i, "CueName"));
+            byName.Add(cue.Name, cue);
+            // ID lookup uses the first name-table alias, matching Cues() order.
+            byId.TryAdd(cue.Id, cue);
+        }
+        for (int i = 0; i < cues.Rows.Count; i++)
+        {
+            uint id = cues.Number(i, "CueId");
+            if (!byId.ContainsKey(id)) byId.Add(id, Handle(checked((ushort)i), ""));
+        }
+        _cuesById = byId;
+        _cuesByName = byName;
 
+        CueHandle Handle(ushort row, string name) => new(cues.Number(row, "CueId"), name, row,
+            cues.Number(row, "ReferenceType") == 3
+                ? checked((ushort)cues.Number(row, "ReferenceIndex")) : ushort.MaxValue);
+    }
     private uint AllocateCueId()
     {
         EnsureIdentities();
         uint id = 0;
-        while (_usedCueIds.Contains(id))
+        while (_cuesById!.ContainsKey(id))
         {
             if (id == int.MaxValue) throw new InvalidOperationException("No free cue IDs.");
             id++;
@@ -241,7 +280,7 @@ public sealed partial class AcbBank
         EnsureIdentities();
         string basis = id.ToString(System.Globalization.CultureInfo.InvariantCulture);
         string name = basis;
-        for (int suffix = 1; _usedCueNames.Contains(name); suffix++) name = $"{basis}_{suffix}";
+        for (int suffix = 1; _cuesByName!.ContainsKey(name); suffix++) name = $"{basis}_{suffix}";
         return name;
     }
 
@@ -289,8 +328,7 @@ public sealed partial class AcbBank
             ["NumRelatedWaveforms"] = waveCount
         });
         Add("CueNameTable", new() { ["CueName"] = name, ["CueIndex"] = row });
-        _usedCueIds.Add(id);
-        _usedCueNames.Add(name);
+        InvalidateIdentities();
         return row;
     }
 
@@ -352,7 +390,7 @@ public sealed partial class AcbBank
     private ushort FindTemplateRow(uint id)
     {
         EnsureIdentities();
-        if (!_usedCueIds.Contains(id)) throw new ArgumentException($"Template cue ID {id} not found.");
+        if (!_cuesById!.ContainsKey(id)) throw new ArgumentException($"Template cue ID {id} not found.");
         return FindCueRow(id);
     }
 
@@ -381,8 +419,7 @@ public sealed partial class AcbBank
             fields["CueId"] = id;
             ushort row = Add("CueTable", fields);
             Add("CueNameTable", new() { ["CueName"] = name, ["CueIndex"] = row });
-            _usedCueIds.Add(id);
-            _usedCueNames.Add(name);
+            InvalidateIdentities();
             ushort sequence = cues.Number(row, "ReferenceType") == 3
                 ? checked((ushort)cues.Number(row, "ReferenceIndex"))
                 : ushort.MaxValue;
@@ -429,7 +466,7 @@ public sealed partial class AcbBank
             ushort cue = NewCue(id, name, sequence, HookWaveform.DurationMilliseconds, 1);
 
             options ??= new();
-            if (!options.ContainsBus("MasterOut")) options.SetBus("MasterOut", options.Volume);
+
             
             Apply(sequence, options);
             UpdateControlMap(cue, options, []);
@@ -471,6 +508,49 @@ public sealed partial class AcbBank
             return new CueHandle(id, name, cue, sequence);
         });
 
+    /// <summary>Sets the cue sequence's MasterOut send to an absolute nonnegative level, preserving other settings.</summary>
+    public void SetCueVolume(uint cueId, float volume)
+    {
+        if (!float.IsFinite(volume) || volume < 0)
+            throw new ArgumentOutOfRangeException(nameof(volume), "Cue volume must be finite and nonnegative.");
+        Transaction(() =>
+        {
+            var cue = Cue(cueId);
+            if (cue.SequenceRow == ushort.MaxValue)
+                throw new NotSupportedException("Only sequence-backed cues can be configured.");
+            var cues = Table("CueTable");
+            var sequences = Table("SequenceTable");
+            ushort sequence = cue.SequenceRow;
+            // Count CueTable rows, including unnamed cues, rather than name aliases.
+            if (Enumerable.Range(0, cues.Rows.Count).Count(row =>
+                    cues.Number(row, "ReferenceType") == 3 && cues.Number(row, "ReferenceIndex") == sequence) > 1)
+            {
+                sequence = Add("SequenceTable", sequences.Columns.Select((column, i) =>
+                        (column.Name, Value: sequences.Rows[cue.SequenceRow][i] is byte[] blob
+                            ? blob.ToArray() : sequences.Rows[cue.SequenceRow][i]))
+                    .ToDictionary(pair => pair.Name, pair => pair.Value));
+                cues.Set(cue.CueRow, "ReferenceIndex", sequence);
+            }
+
+            ushort old = checked((ushort)sequences.Number(sequence, "CommandIndex"));
+            var commands = old == ushort.MaxValue ? new List<AcbCommand>()
+                : AcbCommands.Decode(Table("SeqCommandTable").Data(old, "Command"));
+            var strings = Table("StringValueTable");
+            int masterOut = Enumerable.Range(0, strings.Rows.Count)
+                .FirstOrDefault(row => strings.Text(row, "StringValue") == "MasterOut", -1);
+            // Resolve by name so duplicate string-table entries are handled too.
+            commands.RemoveAll(command => command.Opcode == AcbCommands.VolumeBus &&
+                command.Parameters.Length >= 4 && strings.Text(
+                    System.Buffers.Binary.BinaryPrimitives.ReadUInt16BigEndian(command.Parameters), "StringValue") == "MasterOut");
+            if (masterOut < 0) masterOut = Add("StringValueTable", new() { ["StringValue"] = "MasterOut" });
+            commands.Add(new(AcbCommands.VolumeBus, AcbCommands.U16(checked((ushort)masterOut),
+                checked((ushort)MathF.Round(volume * 10000)))));
+            AcfReference(9, "MasterOut");
+            ushort commandIndex = Add("SeqCommandTable", new() { ["Command"] = AcbCommands.Encode(commands) });
+            sequences.Set(sequence, "CommandIndex", commandIndex);
+            return true;
+        });
+    }
     public void SetCueOptions(uint id, CueOptions options) => Transaction(() =>
     {
         var cue = Cue(id);
@@ -585,11 +665,19 @@ public sealed partial class AcbBank
         // Global AISAC attachments are represented by the range above. Do not infer command 75's
         // meaning from AtomicAudio's enum name: the native interpreter writes parameter 0x5d.
         var strings = Table("StringValueTable");
-        foreach (var send in options.BusSends)
+        if (!float.IsFinite(options.Volume) || options.Volume < 0)
+            throw new ArgumentException("Cue volume must not be less than 0.");
+        var sends = options.BusSends.ToList();
+        int masterOut = sends.FindIndex(send => send.Name == "MasterOut");
+        if (masterOut >= 0)
+            sends[masterOut] = sends[masterOut] with { Level = options.Volume };
+        else
+            sends.Add(new BusSend("MasterOut", options.Volume));
+        foreach (var send in sends)
         {
             if (string.IsNullOrWhiteSpace(send.Name) || send.Name.Contains('\0') || !float.IsFinite(send.Level) ||
-                send.Level < 0 || send.Level > 1)
-                throw new ArgumentException("Bus send needs a name and level in [0, 1].");
+                send.Level < 0)
+                throw new ArgumentException("Bus send needs a name and level not less than 0.");
             if (Acf is not null && !Acf.BusNames.Contains(send.Name, StringComparer.Ordinal))
                 throw new ArgumentException($"Bus '{send.Name}' is absent from the ACF.");
             int index = Enumerable.Range(0, strings.Rows.Count)

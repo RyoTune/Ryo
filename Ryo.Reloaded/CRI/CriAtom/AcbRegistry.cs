@@ -3,6 +3,7 @@
 using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
 using Ryo.Reloaded.Audio;
+using Ryo.Reloaded.Audio.Models;
 using Ryo.Reloaded.Common.Memory;
 using Ryo.Reloaded.CRI.CriAtom.Models;
 
@@ -47,54 +48,54 @@ internal unsafe class AcbRegistry
         
         var registeredCues = _audioRegistry.GetRegisteredCuesForAcb(acb.Name);
 
-        var existingCueIds = new HashSet<int>();
-        var existingCueNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        foreach (var cue in acb.Cues())
-        {
-            existingCueIds.Add((int)cue.Id);
-            existingCueNames.Add(cue.Name);
-        }
-
         var rebuildRequired = false;
         foreach (var cue in _audioRegistry.GetRegisteredCuesForAcb(acb.Name))
         {
-            if (existingCueNames.Contains(cue.Identifier))
-            {
-                // TODO: Possibly support creating cues by cue name,
-                // but auto-assigning cue IDs could be problematic.
-                // Would have to first add all new cues using IDs, then
-                // add the cues using name.
-                continue;
-            }
+            var isCueId = int.TryParse(cue.Identifier, out var cueId);
+            var resolvedVolume = ResolveCueVolume(cue.Config);
             
-            if (int.TryParse(cue.Identifier, out var newCueId) && !existingCueIds.Contains(newCueId))
+            // Edit existing cue data, currently just volume.
+            if ((isCueId && acb.TryGetCueHandle((uint)cueId, out var handle))
+                || acb.TryGetCueHandle(cue.Identifier, out handle))
             {
-                rebuildRequired = true;
-                if (cue.Config.TemplateCueId != null)
+                if (resolvedVolume != null)
                 {
-                    acb.AddCue((uint)newCueId, (uint)cue.Config.TemplateCueId.Value);
-                    Log.Debug($"Cue Added || ACB: {acb.Name}, Cue: {cue.Identifier}, Template Cue ID: {cue.Config.TemplateCueId.Value}");
-                    continue;
-                }
-
-                if (cue.Config.TemplateCueName != null)
-                {
-                    acb.AddCue((uint)newCueId, cue.Config.TemplateCueName);
-                    Log.Debug($"Cue Added || ACB: {acb.Name}, Cue: {cue.Identifier}, Template Cue: {cue.Config.TemplateCueName}");
-                    continue;
+                    acb.SetCueVolume(handle.Id, resolvedVolume.Value);
+                    Log.Debug($"Cue Edit || ACB: {acb.Name}, Cue: {cue.Identifier}, Volume: {resolvedVolume}");
+                    rebuildRequired = true;
                 }
                 
-                var volume = cue.Config.Volume ?? 1.0f;
+                continue;
+            }
+
+            // TODO: Currently new cues by name is not supported.
+            if (!isCueId) continue;
+
+            CueHandle? newCue = null;
+            if (cue.Config.TemplateCueId != null)
+            {
+                newCue = acb.AddCue((uint)cueId, (uint)cue.Config.TemplateCueId.Value);
+                Log.Debug($"Cue Added || ACB: {acb.Name}, Cue: {cue.Identifier}, Template Cue ID: {cue.Config.TemplateCueId.Value}");
+            }
+            else if (cue.Config.TemplateCueName != null)
+            {
+                newCue = acb.AddCue((uint)cueId, cue.Config.TemplateCueName);
+                Log.Debug($"Cue Added || ACB: {acb.Name}, Cue: {cue.Identifier}, Template Cue: {cue.Config.TemplateCueName}");
+            }
+            else
+            {
                 var categoryIds = cue.Config.CategoryIds?.Select(x => (uint)x).ToList() ?? [];
-                acb.AddCue((uint)newCueId,
+                newCue = acb.AddCue((uint)cueId,
                     new CueOptions
                     {
-                        Volume = volume,
                         CategoryIds = categoryIds,
                     });
                 
-                Log.Debug($"Cue Added || ACB: {acb.Name}, Cue: {cue.Identifier}, Volume: {volume}, Categories: {string.Join(", ", categoryIds)}");
+                Log.Debug($"Cue Added || ACB: {acb.Name}, Cue: {cue.Identifier}, Volume: {resolvedVolume}, Categories: {string.Join(", ", categoryIds)}");
             }
+            
+            acb.SetCueVolume(newCue.Id, resolvedVolume ?? 1.0f);
+            rebuildRequired = true;
         }
 
         _acbs[acb.Name] = new(acb);
@@ -142,6 +143,23 @@ internal unsafe class AcbRegistry
         
         Log.Debug($"{nameof(criAtomConfig_Register)} || Loading ACF: {_acf.Name}");
         _criAtomConfig_Register.Hook!.OriginalFunction(acfData, acfDataSize);
+    }
+
+    private static float? ResolveCueVolume(CueConfig cue)
+    {
+        if (cue.Volume != null) return cue.Volume;
+        if (cue.ClassicVolume?.Volume != null)
+        {
+            if (cue.ClassicVolume.ShouldBoost)
+            {
+                if (cue.ClassicVolume.Volume.Value >= 1.0f) return cue.ClassicVolume.Volume.Value;
+                return (float?)(cue.ClassicVolume.Volume.Value + Mod.Config.RyoClassicVolumeBoost);
+            }
+
+            return cue.ClassicVolume.Volume.Value;
+        }
+        
+        return null;
     }
     
     private class AcbEntry
