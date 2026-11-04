@@ -40,12 +40,20 @@ internal class AudioRegistry(string game, AudioPreprocessor preprocessor, IYamlD
         if (!_registeredCues.TryGetValue(config.AcbName, out var cueRegistrations))
             _registeredCues[config.AcbName] = cueRegistrations = [];
 
+        // Ryo Classic volume settings should boost the volume in
+        // games where Ryo audio played louder than expected.
+        // We determine those games by checking if the default config
+        // has a preset volume setting.
+        var classicVol = config.RyoClassicVolume != null
+            ? new ClassicVolume(config.RyoClassicVolume, _defaultConfig.Volume != null)
+            : null;
+        
         var cueConfig = new CueConfig
         {
             CategoryIds = config.CategoryIds,
             CategoryNames = config.CategoryNames,
             Volume = config.Volume,
-            RyoClassicVolume = config.RyoClassicVolume,
+            ClassicVolume = classicVol,
             TemplateCueId = config.TemplateCueId,
             TemplateCueName = config.TemplateCueName,
         };

@@ -8,9 +8,11 @@ public class CueConfig
 
     public float? Volume { get; init; }
     
-    public float? RyoClassicVolume { get; init; }
+    public ClassicVolume? ClassicVolume { get; init; }
 
     public int[]? CategoryIds { get; init; }
 
     public string[]? CategoryNames { get; init; }
 }
+
+public record ClassicVolume(float? Volume, bool ShouldBoost);
