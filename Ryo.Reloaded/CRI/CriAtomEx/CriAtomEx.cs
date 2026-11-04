@@ -1,4 +1,4 @@
-﻿using System.Runtime.InteropServices;
+using System.Runtime.InteropServices;
 using Reloaded.Hooks.ReloadedII.Interfaces;
 using Ryo.Interfaces;
 using Ryo.Definitions.Structs;
@@ -47,7 +47,7 @@ internal unsafe class CriAtomEx : ICriAtomEx
     private readonly WrapperContainer<criAtomExCategory_GetVolume> getCategoryVolume;
     private readonly WrapperContainer<criAtomExCategory_GetVolumeById> getVolumeById;
     private readonly WrapperContainer<criAtomExCategory_SetVolume> setVolumeByIndex;
-    private readonly MultiSignature<criAtomExPlayer_SetFormat> setFormat;
+    private readonly WrapperContainer<criAtomExPlayer_SetFormat> setFormat;
     private readonly WrapperContainer<criAtomExPlayer_SetSamplingRate> setSamplingRate;
     private readonly WrapperContainer<criAtomExPlayer_SetNumChannels> setNumChannels;
     private readonly WrapperContainer<criAtomExPlayer_SetVolume> setVolume;
@@ -138,7 +138,8 @@ internal unsafe class CriAtomEx : ICriAtomEx
         scans.AddScan<criAtomExPlayer_GetNumPlayedSamples>(this.patterns.criAtomExPlayer_GetNumPlayedSamples);
         this.getNumPlayedSamples = scans.CreateWrapper<criAtomExPlayer_GetNumPlayedSamples>(Mod.Name);
 
-        this.setFormat = new(scans, this.patterns.criAtomExPlayer_SetFormat);
+        scans.AddScan<criAtomExPlayer_SetFormat>(this.patterns.criAtomExPlayer_SetFormat);
+        this.setFormat = scans.CreateWrapper<criAtomExPlayer_SetFormat>(Mod.Name);
 
         scans.AddScan<criAtomExPlayer_SetSamplingRate>(this.patterns.criAtomExPlayer_SetSamplingRate);
         this.setSamplingRate = scans.CreateWrapper<criAtomExPlayer_SetSamplingRate>(Mod.Name);
@@ -230,7 +231,7 @@ internal unsafe class CriAtomEx : ICriAtomEx
 
     public void Player_SetFile(nint playerHn, nint criBinderHn, byte* path) => this.setFile.Wrapper(playerHn, criBinderHn, path);
 
-    public void Player_SetFormat(nint playerHn, CriAtomFormat format) => this.setFormat.Function.Wrapper(playerHn, format);
+    public void Player_SetFormat(nint playerHn, CriAtomFormat format) => this.setFormat.Wrapper(playerHn, format);
 
     public void Player_SetNumChannels(nint playerHn, int numChannels) => this.setNumChannels.Wrapper(playerHn, numChannels);
 
