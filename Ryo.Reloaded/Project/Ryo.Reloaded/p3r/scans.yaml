@@ -24,7 +24,7 @@ CRIATOM_GetPlaybackIdFromContext:
   candidates:
     - pattern: '4C 8B D1 48 85 C9 75 ?? 83 C8 FF C3 48 2B 0D ?? ?? ?? ?? 49 BB A1 0E EA A0 0E EA A0 0E'
 
-CriAtomExCueLinkCallback_PTR:
+CriAtomExCueLinkCbFunc_PTR:
   candidates:
     - pattern: 'FF 15 ?? ?? ?? ?? 48 83 63 ?? 00 48 8B D3'
       transform: 'ResolveRelativeAddress(result)'

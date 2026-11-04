@@ -17,8 +17,8 @@ internal unsafe class CriAtomService
     public delegate uint CRIATOM_BuildCueWaveformSource(PlaybackContext* pPlaybackContext, WaveformSourceEvent* pWaveformSourceEvent);
     private readonly SHFunction<CRIATOM_BuildCueWaveformSource> _CRIATOM_BuildCueWaveformSource;
     
-    private delegate void CriAtomExCueLinkCallback(nint userData, CriAtomExCueLinkInfo* info);
-    private IReverseWrapper<CriAtomExCueLinkCallback>? _CRIATOM_CueLinkCallback;
+    private delegate void CriAtomExCueLinkCbFunc(nint userData, CriAtomExCueLinkInfo* info);
+    private IReverseWrapper<CriAtomExCueLinkCbFunc>? _CRIATOM_CueLinkCallback;
     
     private delegate uint CRIATOM_GetPlaybackIdFromContext(PlaybackContext* pPlaybackContext);
     private readonly SHFunction<CRIATOM_GetPlaybackIdFromContext> _CRIATOM_GetPlaybackIdFromContext;
@@ -40,12 +40,12 @@ internal unsafe class CriAtomService
         _CRIATOM_AddAwbSourceEntry = new(CRIATOM_AddAwbSourceEntryImpl);
         _CRIATOM_GetPlaybackIdFromContext = new();
         
-        Project.Scans.AddScanHook($"{nameof(CriAtomExCueLinkCallback)}_PTR", (result, hooks) =>
+        Project.Scans.AddScanHook($"{nameof(CriAtomExCueLinkCbFunc)}_PTR", (result, hooks) =>
         {
-            _CRIATOM_CueLinkCallback = hooks.CreateReverseWrapper<CriAtomExCueLinkCallback>(CriAtomExCueLinkCallbackImpl);
+            _CRIATOM_CueLinkCallback = hooks.CreateReverseWrapper<CriAtomExCueLinkCbFunc>(CriAtomExCueLinkCallbackImpl);
             var address = (nint*)result;
             if (*address == 0) *address = _CRIATOM_CueLinkCallback.NativeFunctionPtr;
-            else Log.Error($"{nameof(CriAtomExCueLinkCallback)} already exists. Please report this game to the Ryo GitHub or GameBanana page.");
+            else Log.Error($"{nameof(CriAtomExCueLinkCbFunc)} already set. Please report this game to the Ryo GitHub or GameBanana page.");
         });
     }
 

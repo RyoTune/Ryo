@@ -26,7 +26,7 @@ criAtomConfig_Register:
   candidates:
     - pattern: '48 83 EC 28 48 8B C1 48 8B 0D ?? ?? ?? ?? 48 85 C9 74'
 
-CriAtomExCueLinkCallback_PTR:
+CriAtomExCueLinkCbFunc_PTR:
   candidates:
     - pattern: 'FF 15 ?? ?? ?? ?? 48 83 63 ?? 00 48 8B D3'
       transform: 'ResolveRelativeAddress(result)'
